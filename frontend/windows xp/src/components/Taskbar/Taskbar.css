@@ -3,15 +3,43 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 40px;
+    height: 36px;
     background: var(--xp-taskbar-gradient);
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 0 2px 0;
+    gap: 2px;
+    padding: 0;
     z-index: 9000;
-    border-top: 1px solid var(--xp-taskbar-border);
-    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+    border-top: 2px solid var(--xp-taskbar-border-top, #3168d5);
+    box-shadow: inset 0 1px 0 var(--xp-taskbar-shine, rgba(255, 255, 255, 0.28));
+}
+
+/* Inner top shine line – the key XP detail */
+.taskbar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0.35) 20%,
+            rgba(255, 255, 255, 0.35) 80%,
+            rgba(255, 255, 255, 0.15) 100%);
+    z-index: 1;
+}
+
+/* Bottom edge dark line */
+.taskbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--xp-taskbar-border, #0c3281);
+    z-index: 1;
 }
 
 /* ── Start Button ───────────────────────────────── */
@@ -20,49 +48,86 @@
     align-items: center;
     gap: 4px;
     height: 36px;
-    padding: 0 10px 0 6px;
-    margin: 0 4px;
+    padding: 0 12px 0 4px;
+    margin: 0;
     background: var(--xp-start-gradient);
-    border: 1px solid rgba(0, 0, 0, 0.35);
-    border-radius: 12px;
+    border: none;
+    border-right: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 0 8px 8px 0;
     cursor: pointer;
     font-family: 'Tahoma', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     font-style: italic;
     color: #fff;
-    text-shadow: 1px 1px 1px #000;
-    transition: filter 0.1s;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    transition: filter 0.08s;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    z-index: 2;
 }
 
-.start-btn:hover,
-.start-btn.active {
-    filter: brightness(1.15);
+/* Start button gloss overlay */
+.start-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--xp-start-shine);
+    border-radius: inherit;
+    pointer-events: none;
 }
 
+/* Start button inner highlight on top edge */
+.start-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.35);
+    pointer-events: none;
+}
+
+.start-btn:hover {
+    filter: brightness(1.12);
+}
+
+.start-btn.active,
 .start-btn:active {
-    filter: brightness(0.85);
+    filter: brightness(0.92);
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .start-logo {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));
+    position: relative;
+    z-index: 1;
 }
 
 .start-text {
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    position: relative;
+    z-index: 1;
 }
 
 /* ── Separator ──────────────────────────────────── */
 .taskbar-separator {
     width: 2px;
-    height: 28px;
-    background: rgba(255, 255, 255, 0.15);
-    border-left: 1px solid rgba(0, 0, 0, 0.2);
+    height: 24px;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.18) 50%,
+            rgba(255, 255, 255, 0.1) 100%);
+    border-left: 1px solid rgba(0, 0, 0, 0.25);
     flex-shrink: 0;
+    margin: 0 2px;
 }
 
 /* ── Window Buttons ─────────────────────────────── */
@@ -79,20 +144,32 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    height: 28px;
+    height: 26px;
     min-width: 80px;
     max-width: 160px;
     padding: 0 8px;
     background: var(--xp-taskbarbtn-bg);
-    border: 1px solid rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 0, 0, 0.35);
+    border-top-color: rgba(255, 255, 255, 0.12);
     border-radius: 3px;
     cursor: pointer;
     font-family: 'Tahoma', sans-serif;
     font-size: 11px;
     color: #fff;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-    transition: background 0.1s;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+    transition: background 0.08s;
     overflow: hidden;
+    position: relative;
+}
+
+/* Subtle top shine on taskbar buttons */
+.taskbar-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+    border-radius: inherit;
 }
 
 .taskbar-btn:hover {
@@ -101,7 +178,8 @@
 
 .taskbar-btn.active {
     background: var(--xp-taskbarbtn-active);
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.35);
+    border-top-color: rgba(0, 0, 0, 0.35);
 }
 
 .taskbar-btn-icon {
@@ -123,17 +201,31 @@
     align-items: center;
     gap: 6px;
     height: 100%;
-    padding: 0 8px;
+    padding: 0 12px 0 8px;
     background: var(--xp-tray-bg);
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 1px solid var(--xp-tray-border, rgba(255, 255, 255, 0.12));
     margin-left: auto;
     flex-shrink: 0;
+    position: relative;
+    border-radius: 0;
+}
+
+/* Tray inner highlight */
+.system-tray::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    pointer-events: none;
 }
 
 .tray-icon {
     font-size: 14px;
     cursor: pointer;
-    opacity: 0.9;
+    opacity: 0.85;
     transition: opacity 0.1s;
 }
 
@@ -144,7 +236,10 @@
 .tray-divider {
     width: 1px;
     height: 20px;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.05) 100%);
 }
 
 .taskbar-clock {
@@ -153,6 +248,7 @@
     color: #fff;
     white-space: nowrap;
     padding: 0 4px;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Theme Dots ─────────────────────────────────── */
@@ -163,12 +259,12 @@
 }
 
 .tray-theme-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    transition: transform 0.15s, border-color 0.15s;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    transition: transform 0.12s, border-color 0.12s;
 }
 
 .tray-theme-dot:hover {

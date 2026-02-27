@@ -39,41 +39,32 @@ const WindowFrame = memo(({ win }) => {
         >
             {/* Title Bar */}
             <div
-                className={`xp-title-bar ${win.focused ? '' : 'inactive'}`}
+                className={`title-bar ${win.focused ? '' : 'inactive'}`}
                 onMouseDown={onDragStart}
                 onDoubleClick={() => maximizeWindow(win.id)}
             >
-                <div className="xp-title-bar-left">
+                <div className="title-bar-text" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {win.icon && (
-                        <img src={win.icon} alt="" className="xp-title-icon" />
+                        <img src={win.icon} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />
                     )}
-                    <span className="xp-title-text">{win.title}</span>
+                    <span>{win.title}</span>
                 </div>
-                <div className="xp-title-bar-controls">
+                <div className="title-bar-controls">
                     <button
-                        className="xp-btn xp-btn-minimize"
+                        aria-label="Minimize"
                         onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}
                         title="Minimize"
-                        aria-label={`Minimize ${win.title}`}
-                    >
-                        <span className="xp-btn-icon">_</span>
-                    </button>
+                    />
                     <button
-                        className="xp-btn xp-btn-maximize"
+                        aria-label={win.maximized ? 'Restore' : 'Maximize'}
                         onClick={(e) => { e.stopPropagation(); maximizeWindow(win.id); }}
                         title={win.maximized ? 'Restore' : 'Maximize'}
-                        aria-label={win.maximized ? 'Restore' : 'Maximize'}
-                    >
-                        <span className="xp-btn-icon">{win.maximized ? '❐' : '□'}</span>
-                    </button>
+                    />
                     <button
-                        className="xp-btn xp-btn-close"
+                        aria-label="Close"
                         onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
                         title="Close"
-                        aria-label={`Close ${win.title}`}
-                    >
-                        <span className="xp-btn-icon">✕</span>
-                    </button>
+                    />
                 </div>
             </div>
 

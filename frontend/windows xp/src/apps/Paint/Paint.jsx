@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { Pencil, Eraser, PaintBucket, Square, Circle, Minus, Trash2, Save } from 'lucide-react';
 import './Paint.css';
 
 const COLORS = [
@@ -130,7 +131,14 @@ const Paint = () => {
         link.click();
     };
 
-    const toolIcon = { pencil: '✏️', eraser: '🧹', fill: '🪣', rect: '▭', ellipse: '⭕', line: '╱' };
+    const toolIcon = {
+        pencil: <Pencil size={14} />,
+        eraser: <Eraser size={14} />,
+        fill: <PaintBucket size={14} />,
+        rect: <Square size={14} />,
+        ellipse: <Circle size={14} />,
+        line: <Minus size={14} />
+    };
 
     return (
         <div className="paint">
@@ -167,8 +175,8 @@ const Paint = () => {
                         </button>
                     ))}
                     <div className="paint-tool-sep" />
-                    <button className="paint-action-btn" onClick={clearCanvas} title="Clear">🗑️</button>
-                    <button className="paint-action-btn" onClick={saveCanvas} title="Save">💾</button>
+                    <button className="paint-action-btn" onClick={clearCanvas} title="Clear"><Trash2 size={14} /></button>
+                    <button className="paint-action-btn" onClick={saveCanvas} title="Save"><Save size={14} /></button>
                 </div>
 
                 {/* Canvas */}

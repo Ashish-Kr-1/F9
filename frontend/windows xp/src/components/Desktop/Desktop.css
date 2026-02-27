@@ -1,9 +1,11 @@
 .desktop-root {
     position: fixed;
-    inset: 0 0 40px 0;
+    inset: 0 0 36px 0;
     /* leaves room for taskbar */
     overflow: hidden;
-    background: var(--xp-wallpaper);
+    /* Bliss wallpaper as image, with gradient fallback */
+    background-image: var(--xp-wallpaper);
+    background-color: #3a78d4;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -15,8 +17,8 @@
     flex-direction: column;
     flex-wrap: wrap;
     align-content: flex-start;
-    gap: 8px;
-    padding: 12px 8px;
+    gap: 6px;
+    padding: 10px 6px;
     height: 100%;
     pointer-events: none;
 }
@@ -26,17 +28,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 72px;
-    gap: 4px;
+    width: 76px;
+    gap: 2px;
     cursor: pointer;
     pointer-events: all;
     border-radius: 2px;
-    padding: 4px 2px;
+    padding: 6px 4px 4px 4px;
     user-select: none;
 }
 
 .desktop-icon:hover {
-    background: rgba(49, 106, 197, 0.4);
+    background: rgba(49, 106, 197, 0.35);
+    outline: 1px dotted rgba(255, 255, 255, 0.5);
+}
+
+.desktop-icon:active {
+    background: rgba(49, 106, 197, 0.5);
 }
 
 .desktop-icon-img-wrap {
@@ -51,13 +58,18 @@
     width: 32px;
     height: 32px;
     image-rendering: pixelated;
+    filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
 }
 
 .desktop-icon-label {
     font-family: 'Tahoma', sans-serif;
     font-size: 11px;
     color: #fff;
-    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000;
+    text-shadow:
+        1px 1px 2px #000,
+        -1px -1px 2px #000,
+        1px -1px 2px #000,
+        -1px 1px 2px #000;
     text-align: center;
     line-height: 1.2;
     word-break: break-word;
