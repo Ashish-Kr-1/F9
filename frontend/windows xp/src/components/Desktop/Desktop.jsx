@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { useWindowManager } from '../../context/WindowContext';
 import WindowFrame from '../Window/Window';
 import './Desktop.css';
-
+import Clippy from "../clippy-ai/Clippy";
 // Desktop Icons configuration
 import { DESKTOP_ICONS } from '../../config/icons';
 
@@ -53,6 +53,7 @@ const Desktop = () => {
             {windows.map(win => (
                 <WindowFrame key={win.id} win={win} />
             ))}
+            <Clippy />
         </div>
     );
 };
