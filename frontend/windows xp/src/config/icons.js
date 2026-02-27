@@ -4,6 +4,7 @@ import Calculator from '../apps/Calculator/Calculator';
 import FileExplorer from '../apps/FileExplorer/FileExplorer';
 import ControlPanel from '../apps/ControlPanel/ControlPanel';
 import Snake from '../apps/Snake/Snake';
+import Minesweeper from '../apps/Minesweeper/Minesweeper';
 
 export const DESKTOP_ICONS = [
     {
@@ -77,5 +78,14 @@ export const DESKTOP_ICONS = [
         component: Snake,
         defaultSize: { width: 500, height: 500 },
         minSize: { width: 400, height: 400 },
+    },
+    {
+        appId: 'minesweeper',
+        label: 'Minesweeper',
+        title: 'Minesweeper',
+        src: '/icons/minesweeper.png',
+        component: Minesweeper,
+        defaultSize: { width: 320, height: 450 },
+        minSize: { width: 260, height: 350 },
     },
 ];
