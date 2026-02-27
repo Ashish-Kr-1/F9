@@ -1,0 +1,176 @@
+.start-menu {
+    position: fixed;
+    bottom: 40px;
+    left: 0;
+    width: 480px;
+    background: #fff;
+    border: 1px solid var(--xp-border-outer);
+    border-radius: 8px 8px 0 0;
+    box-shadow: 4px -4px 16px rgba(0, 0, 0, 0.5);
+    z-index: 8999;
+    font-family: 'Tahoma', sans-serif;
+    overflow: hidden;
+    animation: startSlide 0.12s ease-out;
+}
+
+@keyframes startSlide {
+    from {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ── Header ────────────────────────────────────── */
+.start-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--xp-titlebar-gradient);
+    min-height: 54px;
+}
+
+.avatar-placeholder {
+    font-size: 28px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 4px 6px;
+}
+
+.start-menu-username {
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Body ───────────────────────────────────────── */
+.start-menu-body {
+    display: flex;
+    height: 340px;
+}
+
+/* ── Left Panel ─────────────────────────────────── */
+.start-menu-left {
+    flex: 1;
+    background: #fff;
+    border-right: 1px solid #c0c0c0;
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    overflow-y: auto;
+}
+
+.start-menu-section-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    letter-spacing: 0.8px;
+}
+
+.start-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+    font-family: 'Tahoma', sans-serif;
+    transition: background 0.1s;
+}
+
+.start-menu-item:hover {
+    background: var(--xp-highlight);
+    color: #fff;
+}
+
+.start-menu-item-icon {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+}
+
+.start-menu-emoji {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.start-menu-divider {
+    height: 1px;
+    background: #d4d0c8;
+    margin: 6px 8px;
+}
+
+/* ── Right Panel ─────────────────────────────────── */
+.start-menu-right {
+    width: 180px;
+    background: #dce4f5;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+}
+
+.start-menu-right-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Tahoma', sans-serif;
+    text-align: left;
+    transition: background 0.1s;
+}
+
+.start-menu-right-item:hover {
+    background: var(--xp-highlight);
+    color: #fff;
+}
+
+.start-menu-divider-h {
+    height: 1px;
+    background: #b0b8d0;
+    margin: 6px 10px;
+}
+
+/* ── Footer ─────────────────────────────────────── */
+.start-menu-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--xp-titlebar-gradient);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.start-footer-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    font-family: 'Tahoma', sans-serif;
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.start-footer-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+}

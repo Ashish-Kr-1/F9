@@ -1,68 +1,137 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* ================================================================
+   Windows XP Browser Emulator — Global CSS
+   ================================================================ */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  padding: 0;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Tahoma', 'Segoe UI', sans-serif;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* ================================================================
+   CSS VARIABLE THEME ENGINE
+   ================================================================ */
+
+/* ── Luna Blue (Default) ─────────────────────────────────────── */
+[data-theme="blue"] {
+  --xp-titlebar-gradient: linear-gradient(180deg, #4a8cf0 0%, #2454db 35%, #1842c0 65%, #2454db 100%);
+  --xp-titlebar-inactive: linear-gradient(180deg, #8aacdc 0%, #6088c0 100%);
+  --xp-taskbar-gradient: linear-gradient(180deg, #1f5bc4 0%, #3177d8 12%, #245ecc 46%, #2060cf 50%, #2564d4 80%, #1b52bd 100%);
+  --xp-taskbar-border: #1a4bab;
+  --xp-start-gradient: linear-gradient(180deg, #4ea040 0%, #3c8a2e 40%, #2d6e20 100%);
+  --xp-highlight: #2454db;
+  --xp-window-bg: #ffffff;
+  --xp-border-outer: #0a246a;
+  --xp-tray-bg: linear-gradient(180deg, #1756d3 0%, #2060d4 100%);
+  --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
+  --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
+  --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
+  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  --xp-wallpaper: radial-gradient(ellipse at 30% 60%, #4fc060 0%, #2a9a30 40%, #1a7a20 80%, #0d5714 100%);
+}
+
+/* ── Olive Green ─────────────────────────────────────────────── */
+[data-theme="olive"] {
+  --xp-titlebar-gradient: linear-gradient(180deg, #a0b060 0%, #6a7c3e 35%, #4e5f28 65%, #6a7c3e 100%);
+  --xp-titlebar-inactive: linear-gradient(180deg, #c0c898 0%, #909870 100%);
+  --xp-taskbar-gradient: linear-gradient(180deg, #4e5828 0%, #6a7438 12%, #5a6430 46%, #556030 50%, #5a6430 80%, #444e22 100%);
+  --xp-taskbar-border: #3c4820;
+  --xp-start-gradient: linear-gradient(180deg, #90a040 0%, #7a8a2e 40%, #606e1c 100%);
+  --xp-highlight: #6a7c3e;
+  --xp-window-bg: #fff;
+  --xp-border-outer: #3c4820;
+  --xp-tray-bg: linear-gradient(180deg, #505a28 0%, #5c662e 100%);
+  --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
+  --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
+  --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
+  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+  --xp-wallpaper: radial-gradient(ellipse at 50% 50%, #9aaa60 0%, #607040 40%, #3e4e28 100%);
+}
+
+/* ── Silver ──────────────────────────────────────────────────── */
+[data-theme="silver"] {
+  --xp-titlebar-gradient: linear-gradient(180deg, #d0d0d8 0%, #909098 35%, #707078 65%, #909098 100%);
+  --xp-titlebar-inactive: linear-gradient(180deg, #e0e0e8 0%, #b0b0c0 100%);
+  --xp-taskbar-gradient: linear-gradient(180deg, #787880 0%, #949498 12%, #808088 46%, #787880 50%, #808088 80%, #6a6a72 100%);
+  --xp-taskbar-border: #606068;
+  --xp-start-gradient: linear-gradient(180deg, #a0a0a8 0%, #808088 40%, #606068 100%);
+  --xp-highlight: #5080c0;
+  --xp-window-bg: #fff;
+  --xp-border-outer: #505058;
+  --xp-tray-bg: linear-gradient(180deg, #707078 0%, #808088 100%);
+  --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
+  --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
+  --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
+  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+  --xp-wallpaper: radial-gradient(ellipse at 40% 60%, #c0c8d8 0%, #9098a8 50%, #606878 100%);
+}
+
+/* ── Royale (Media Center) ───────────────────────────────────── */
+[data-theme="royale"] {
+  --xp-titlebar-gradient: linear-gradient(180deg, #3060a0 0%, #1e3a6e 35%, #142c58 65%, #1e3a6e 100%);
+  --xp-titlebar-inactive: linear-gradient(180deg, #607098 0%, #405078 100%);
+  --xp-taskbar-gradient: linear-gradient(180deg, #0e1e3c 0%, #1a2e52 12%, #142644 46%, #101c38 50%, #142644 80%, #0a1630 100%);
+  --xp-taskbar-border: #080e20;
+  --xp-start-gradient: linear-gradient(180deg, #2050a0 0%, #163880 40%, #0e2860 100%);
+  --xp-highlight: #1e3a8a;
+  --xp-window-bg: #f0f4ff;
+  --xp-border-outer: #0a1a40;
+  --xp-tray-bg: linear-gradient(180deg, #101e40 0%, #182a54 100%);
+  --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.08);
+  --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.18);
+  --xp-taskbarbtn-active: rgba(0, 0, 0, 0.3);
+  --xp-shadow: 3px 3px 12px rgba(0, 0, 0, 0.6);
+  --xp-wallpaper: radial-gradient(ellipse at 60% 40%, #3060b0 0%, #1a3070 40%, #0a1840 100%);
+}
+
+/* ================================================================
+   SCROLLBAR STYLING (XP-era gray)
+   ================================================================ */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: #d4d0c8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9a9890;
+  border: 3px solid #d4d0c8;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #807e76;
+}
+
+::-webkit-scrollbar-button {
+  background: #d4d0c8;
+  border: 1px solid #808080;
+  display: block;
+  height: 16px;
+}
+
+/* ================================================================
+   UTILITY
+   ================================================================ */
+.xp-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
 }
