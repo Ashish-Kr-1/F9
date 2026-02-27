@@ -13,10 +13,18 @@ const ControlPanel = () => {
             {/* Category sidebar */}
             <div className="cp-sidebar">
                 <div className="cp-sidebar-title">Control Panel</div>
-                {['Display', 'System', 'Network', 'Sound', 'Firewall', 'User Accounts', 'Date &amp; Time'].map(item => (
-                    <div key={item} className="cp-sidebar-item">
-                        <span>⚙️</span>
-                        <span dangerouslySetInnerHTML={{ __html: item }} />
+                {[
+                    { label: 'Display', icon: 'https://win32.run/images/xp/icons/Display.png' },
+                    { label: 'System', icon: 'https://win32.run/images/xp/icons/System.png' },
+                    { label: 'Network', icon: 'https://win32.run/images/xp/icons/Internet.png' },
+                    { label: 'Sound', icon: 'https://win32.run/images/xp/icons/Volume.png' },
+                    { label: 'Firewall', icon: 'https://win32.run/images/xp/icons/SecurityCenter.png' },
+                    { label: 'User Accounts', icon: 'https://win32.run/images/xp/icons/Users.png' },
+                    { label: 'Date & Time', icon: 'https://win32.run/images/xp/icons/Clock.png' },
+                ].map(item => (
+                    <div key={item.label} className="cp-sidebar-item">
+                        <img src={item.icon} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated', flexShrink: 0 }} />
+                        <span>{item.label}</span>
                     </div>
                 ))}
             </div>

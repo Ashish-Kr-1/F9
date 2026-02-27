@@ -15,7 +15,7 @@ const WindowFrame = memo(({ win }) => {
             left: 0,
             top: 0,
             width: '100vw',
-            height: 'calc(100vh - 40px)',
+            height: 'calc(100vh - 36px)',
             zIndex: win.zIndex,
         }
         : {
@@ -39,32 +39,41 @@ const WindowFrame = memo(({ win }) => {
         >
             {/* Title Bar */}
             <div
-                className={`title-bar ${win.focused ? '' : 'inactive'}`}
+                className={`xp-title-bar ${win.focused ? '' : 'inactive'}`}
                 onMouseDown={onDragStart}
                 onDoubleClick={() => maximizeWindow(win.id)}
             >
-                <div className="title-bar-text" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <div className="xp-title-bar-left">
                     {win.icon && (
-                        <img src={win.icon} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />
+                        <img src={win.icon} alt="" className="xp-title-icon" />
                     )}
-                    <span>{win.title}</span>
+                    <span className="xp-title-text">{win.title}</span>
                 </div>
-                <div className="title-bar-controls">
+                <div className="xp-title-bar-controls">
                     <button
+                        className="xp-btn xp-btn-minimize"
                         aria-label="Minimize"
                         onClick={(e) => { e.stopPropagation(); minimizeWindow(win.id); }}
                         title="Minimize"
-                    />
+                    >
+                        <span className="xp-btn-icon">_</span>
+                    </button>
                     <button
+                        className="xp-btn xp-btn-maximize"
                         aria-label={win.maximized ? 'Restore' : 'Maximize'}
                         onClick={(e) => { e.stopPropagation(); maximizeWindow(win.id); }}
                         title={win.maximized ? 'Restore' : 'Maximize'}
-                    />
+                    >
+                        <span className="xp-btn-icon">{win.maximized ? '❐' : '□'}</span>
+                    </button>
                     <button
+                        className="xp-btn xp-btn-close"
                         aria-label="Close"
                         onClick={(e) => { e.stopPropagation(); closeWindow(win.id); }}
                         title="Close"
-                    />
+                    >
+                        <span className="xp-btn-icon">✕</span>
+                    </button>
                 </div>
             </div>
 

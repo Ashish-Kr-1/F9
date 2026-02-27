@@ -113,10 +113,14 @@ const Taskbar = () => {
                     </div>
 
                     {/* Volume icon */}
-                    <div className="tray-icon" title="Volume">🔊</div>
+                    <div className="tray-icon" title="Volume">
+                        <img src="https://win32.run/images/xp/icons/Volume.png" alt="Volume" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />
+                    </div>
 
                     {/* Network icon */}
-                    <div className="tray-icon" title="Network">🌐</div>
+                    <div className="tray-icon" title="Network">
+                        <img src="https://win32.run/images/xp/icons/Internet.png" alt="Network" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />
+                    </div>
 
                     <div className="tray-divider" />
                     <Clock />

@@ -220,3 +220,32 @@
 .start-footer-btn:active {
     background: rgba(0, 0, 0, 0.1);
 }
+
+/* Avatar image */
+.avatar-img {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+}
+
+/* Pinned bold items (like IE at top of real XP start menu) */
+.pinned-bold .start-menu-item-label {
+    font-weight: bold;
+}
+
+/* All Programs label */
+.start-menu-all-programs {
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    text-align: right;
+    margin-top: auto;
+}
+
+.start-menu-all-programs:hover {
+    background: var(--xp-highlight);
+    color: #fff;
+}

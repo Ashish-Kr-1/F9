@@ -11,15 +11,10 @@
     background-repeat: no-repeat;
 }
 
-/* ── Icon Grid ─────────────────────────────────── */
-.desktop-icons-grid {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 6px;
-    padding: 10px 6px;
-    height: 100%;
+/* ── Draggable Icon Layer ───────────────────────── */
+.desktop-icons-layer {
+    position: absolute;
+    inset: 0;
     pointer-events: none;
 }
 
@@ -35,6 +30,7 @@
     border-radius: 2px;
     padding: 6px 4px 4px 4px;
     user-select: none;
+    box-sizing: content-box;
 }
 
 .desktop-icon:hover {
@@ -44,6 +40,11 @@
 
 .desktop-icon:active {
     background: rgba(49, 106, 197, 0.5);
+}
+
+.desktop-icon.selected {
+    background: rgba(49, 106, 197, 0.55);
+    outline: 1px dotted rgba(255, 255, 255, 0.7);
 }
 
 .desktop-icon-img-wrap {

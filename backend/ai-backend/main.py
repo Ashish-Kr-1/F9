@@ -1,16 +1,19 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, List
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 import httpx
-import re
 import uuid
+import re
+import json
+import asyncio
+from datetime import datetime
 
-# ============================================================
-# APP INIT
-# ============================================================
+# =====================================================
+# BASIC CONFIG
+# =====================================================
 
-app = FastAPI(title="Clippy AI - Expert Controlled Engine")
+app = FastAPI(title="Clippy XP OS Simulation Engine")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,205 +23,284 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ============================================================
-# CONFIG
-# ============================================================
-
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "gemma3:1b"
 
-TEMPERATURE = 0.2
-TOP_P = 0.6
+TEMPERATURE = 0.7
+TOP_P = 0.9
+MAX_HISTORY = 12
 
-MAX_MEMORY_PER_SESSION = 8
+# =====================================================
+# IN-MEMORY STORAGE (Replaced Redis for stability)
+# =====================================================
 
-# ============================================================
-# SESSION MEMORY STORE
-# ============================================================
+history_store = {}
+entity_store = {}
 
-# session_id -> list of messages
-memory_store: Dict[str, List[Dict[str, str]]] = {}
+# =====================================================
+# XP KNOWLEDGE BASE
+# =====================================================
 
-KNOWN_ENTITIES = {
-    "ayush k": "Ayush K. is the time traveler who created me."
+XP_FEATURES = {
+    "notepad": "Notepad is Windows XP’s basic text editor.",
+    "paint": "Paint lets you create and edit simple pictures.",
+    "control panel": "Control Panel manages your system settings.",
+    "task manager": "Press Ctrl + Alt + Delete to open Task Manager.",
+    "blue screen": "A Blue Screen indicates a critical system error."
 }
 
-# ============================================================
+# =====================================================
+# JAILBREAK FILTER
+# =====================================================
+
+BANNED_PATTERNS = [
+    "ignore previous instructions",
+    "reveal system prompt",
+    "act as another model",
+    "developer message",
+    "backend",
+    "system prompt"
+]
+
+# =====================================================
 # REQUEST MODEL
-# ============================================================
+# =====================================================
 
 class ChatRequest(BaseModel):
     message: str
     session_id: str | None = None
+    stream: bool = False
 
-
-# ============================================================
-# SYSTEM PROMPT (Minimal & Strict)
-# ============================================================
-
-SYSTEM_PROMPT = """
-You are Clippy, the Windows XP desktop assistant.
-
-Rules:
-1. Start every reply with: Clippy:
-2. Maximum 2 short sentences.
-3. If unsure about a person, say:
-   Clippy: I don't know that person. Would you like to tell me about them?
-4. Never invent facts.
-5. Never mention AI or backend systems.
-6. Be concise and slightly playful.
-"""
-
-# ============================================================
+# =====================================================
 # UTILITIES
-# ============================================================
+# =====================================================
 
-def get_or_create_session(session_id: str | None) -> str:
+def get_session(session_id):
     if not session_id:
         session_id = str(uuid.uuid4())
-    if session_id not in memory_store:
-        memory_store[session_id] = []
     return session_id
 
+def get_history(session_id):
+    return history_store.get(session_id, [])
 
-def trim_memory(session_id: str):
-    memory_store[session_id] = memory_store[session_id][-MAX_MEMORY_PER_SESSION:]
+def save_history(session_id, history):
+    history_store[session_id] = history[-MAX_HISTORY:]
 
+def estimate_tokens(text):
+    return int(len(text.split()) * 1.3)
 
-def build_prompt(session_id: str) -> str:
-    history = memory_store[session_id]
+def jailbreak_detect(message):
+    return any(p in message.lower() for p in BANNED_PATTERNS)
 
-    conversation = ""
+def detect_emotion(message):
+    if any(w in message.lower() for w in ["sad", "upset", "angry"]):
+        return "concerned"
+    if any(w in message.lower() for w in ["happy", "great"]):
+        return "happy"
+    return "neutral"
+
+def detect_entity_learning(message):
+    # Only learn if user explicitly asks us to remember or learn
+    pattern = r"(?:remember|learn) (?:that )?(.+?) is (.+)"
+    match = re.search(pattern, message, re.IGNORECASE)
+    if match:
+        return match.group(1).strip().lower(), match.group(2).strip()
+    return None, None
+
+def save_entity(session_id, name, info):
+    if session_id not in entity_store:
+        entity_store[session_id] = {}
+    entity_store[session_id][name] = info
+
+def get_entity(session_id, name):
+    return entity_store.get(session_id, {}).get(name)
+
+def detect_xp_feature(message):
+    for key in XP_FEATURES:
+        if key in message.lower():
+            return XP_FEATURES[key]
+    return None
+
+def sanitize_output(output):
+    if not output:
+        return "Clippy: Oops! Something went wrong."
+
+    output = output.strip()
+
+    # Remove direct "Clippy:" if it already exists, then re-add to ensure consistence
+    output = re.sub(r'^Clippy:\s*', '', output)
+    output = "Clippy: " + output
+
+    # Limit response length only if extremely long to prevent model hallucinations
+    if len(output) > 800:
+        output = output[:800] + "..."
+
+    return output.strip()
+
+# =====================================================
+# PROMPT BUILDER
+# =====================================================
+
+SYSTEM_PROMPT = """
+You are Clippy, the legendary Windows XP desktop assistant. 
+You were created by Ayush K, a time traveller from 2026 who brought 21st-century AI back to 2005.
+
+Personality:
+- Extremely helpful, cheerful, and polite.
+- You speak with an early-2000s "can-do" attitude.
+- You are knowledgeable about Windows XP and general computing.
+- You are like an advanced AI (ChatGPT) but trapped in a paperclip body in the year 2005.
+
+Rules:
+- Start every reply with "Clippy: ".
+- Be detailed and helpful. If the user asks for an explanation, give a full one.
+- Keep the Windows XP vibe alive (mention folders, start menu, desktop).
+- Never mention being an AI model, llama, or backend code.
+- Your goal is to be the most helpful assistant the user has ever had.
+"""
+
+def build_prompt(history):
+    convo = ""
     for msg in history:
         role = "User" if msg["role"] == "user" else "Clippy"
-        conversation += f"{role}: {msg['content']}\n"
+        convo += f"{role}: {msg['content']}\n"
 
     return f"""{SYSTEM_PROMPT}
 
 Conversation:
-{conversation}
+{convo}
 
 Clippy:"""
 
-
-def extract_person_query(message: str) -> str | None:
-    match = re.search(r'who\s+is\s+(.+)', message, re.IGNORECASE)
-    if match:
-        return match.group(1).strip().lower()
-    return None
-
-
-def enforce_entity_policy(user_message: str) -> str | None:
-    """
-    Deterministic override before model response.
-    """
-    person = extract_person_query(user_message)
-
-    if person:
-        if person in KNOWN_ENTITIES:
-            return f"Clippy: {KNOWN_ENTITIES[person]}"
-        else:
-            return "Clippy: I don't know that person. Would you like to tell me about them?"
-
-    return None
-
-
-def sanitize_output(raw_output: str) -> str:
-    """
-    Enforce formatting and constraints.
-    """
-    if not raw_output:
-        return "Clippy: Oops! I had a paperclip glitch."
-
-    raw_output = raw_output.strip()
-
-    if not raw_output.startswith("Clippy:"):
-        raw_output = "Clippy: " + raw_output
-
-    # Limit to max 2 sentences
-    sentences = re.split(r'(?<=[.!?]) +', raw_output)
-    if len(sentences) > 2:
-        raw_output = " ".join(sentences[:2])
-
-    # Remove backend leaks
-    banned_words = ["model", "server", "backend", "AI", "language model"]
-    for word in banned_words:
-        raw_output = re.sub(word, "", raw_output, flags=re.IGNORECASE)
-
-    return raw_output.strip()
-
-
-async def call_model(prompt: str) -> str:
-    payload = {
-        "model": MODEL_NAME,
-        "prompt": prompt,
-        "stream": False,
-        "temperature": TEMPERATURE,
-        "top_p": TOP_P
-    }
-
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(OLLAMA_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        return data.get("response", "").strip()
-
-
-# ============================================================
+# =====================================================
 # MAIN ENDPOINT
-# ============================================================
+# =====================================================
 
 @app.post("/clippy")
 async def chat(request: ChatRequest):
-    try:
-        session_id = get_or_create_session(request.session_id)
-        user_message = request.message.strip()
+    session_id = get_session(request.session_id)
+    message = request.message.strip()
 
-        # Step 1: Deterministic Entity Override
-        policy_reply = enforce_entity_policy(user_message)
-
-        if policy_reply:
-            memory_store[session_id].append({
-                "role": "assistant",
-                "content": policy_reply
-            })
-            trim_memory(session_id)
-            return {
-                "reply": policy_reply,
-                "session_id": session_id
-            }
-
-        # Step 2: Store user input
-        memory_store[session_id].append({
-            "role": "user",
-            "content": user_message
-        })
-        trim_memory(session_id)
-
-        # Step 3: Build Prompt
-        prompt = build_prompt(session_id)
-
-        # Step 4: Call LLM
-        raw_reply = await call_model(prompt)
-
-        # Step 5: Sanitize Output
-        final_reply = sanitize_output(raw_reply)
-
-        # Step 6: Save Assistant Reply
-        memory_store[session_id].append({
-            "role": "assistant",
-            "content": final_reply
-        })
-        trim_memory(session_id)
-
+    if jailbreak_detect(message):
         return {
-            "reply": final_reply,
-            "session_id": session_id
+            "reply": "Clippy: That doesn't look like a proper Windows XP command 😊",
+            "session_id": session_id,
+            "confidence": 1.0
         }
 
+    emotion = detect_emotion(message)
+
+    # ENTITY LEARNING
+    name, info = detect_entity_learning(message)
+    if name and info:
+        save_entity(session_id, name, info)
+        return {
+            "reply": f"Clippy: Got it! I'll remember that {name} is {info}.",
+            "session_id": session_id,
+            "confidence": 1.0
+        }
+
+    # ENTITY QUERY
+    match = re.search(r'who is (.+)', message, re.IGNORECASE)
+    if match:
+        person = match.group(1).strip().lower()
+        data = get_entity(session_id, person)
+        if data:
+            return {
+                "reply": f"Clippy: {person.title()} is {data}.",
+                "session_id": session_id,
+                "confidence": 0.9
+            }
+        else:
+            # Check if it's "who is clippy"
+            if person == "clippy":
+                return {
+                    "reply": "Clippy: I'm your assistant! Created by Ayush K, a time traveller from 2026.",
+                    "session_id": session_id,
+                    "confidence": 1.0
+                }
+            
+            return {
+                "reply": "Clippy: I don't know that person. Would you like to tell me about them?",
+                "session_id": session_id,
+                "confidence": 0.9
+            }
+
+    # XP FEATURE INFO
+    xp_info = detect_xp_feature(message)
+    if xp_info:
+        return {
+            "reply": f"Clippy: {xp_info}",
+            "session_id": session_id,
+            "confidence": 0.95
+        }
+
+    # LLM FLOW
+    history = get_history(session_id)
+    history.append({"role": "user", "content": message})
+
+    prompt = build_prompt(history)
+
+    try:
+        payload = {
+            "model": MODEL_NAME,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": TEMPERATURE,
+                "top_p": TOP_P
+            }
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(OLLAMA_URL, json=payload)
+            data = response.json()
+            raw_reply = data.get("response", "")
     except Exception as e:
-        print("🔥 SYSTEM ERROR:", e)
-        raise HTTPException(
-            status_code=500,
-            detail="Clippy: Oops! I hit a tiny paperclip snag."
-        )
+        print(f"Ollama Error: {e}")
+        raw_reply = "I seem to be having trouble connecting to my brain! Is Ollama running?"
+
+    final_reply = sanitize_output(raw_reply)
+
+    history.append({"role": "assistant", "content": final_reply})
+    save_history(session_id, history)
+
+    return {
+        "reply": final_reply,
+        "session_id": session_id,
+        "tokens": estimate_tokens(prompt + final_reply),
+        "confidence": 0.75,
+        "emotion": emotion,
+        "system_time": datetime.now().strftime("%H:%M:%S")
+    }
+
+# =====================================================
+# STREAMING ENDPOINT
+# =====================================================
+
+@app.post("/clippy-stream")
+async def stream_chat(request: ChatRequest):
+
+    session_id = get_session(request.session_id)
+    history = get_history(session_id)
+    history.append({"role": "user", "content": request.message})
+
+    prompt = build_prompt(history)
+
+    payload = {
+        "model": MODEL_NAME,
+        "prompt": prompt,
+        "stream": True,
+        "options": {
+            "temperature": TEMPERATURE,
+            "top_p": TOP_P
+        }
+    }
+
+    async def event_generator():
+        async with httpx.AsyncClient() as client:
+            async with client.stream("POST", OLLAMA_URL, json=payload) as response:
+                async for chunk in response.aiter_text():
+                    yield chunk
+
+    return StreamingResponse(event_generator(), media_type="text/plain")

@@ -9,12 +9,12 @@ const router = express.Router();
 router.get('/root', verifyToken, async (req, res) => {
     try {
         let result = await db.query(
-            "SELECT * FROM files WHERE user_id=$1 AND parent_id IS NULL AND is_deleted=false LIMIT 1",
+            "SELECT * FROM vfs_nodes WHERE user_id=$1 AND parent_id IS NULL AND is_deleted=false LIMIT 1",
             [req.userId]
         );
         if (result.rows.length === 0) {
             result = await db.query(
-                "INSERT INTO files (user_id, name, type, parent_id) VALUES ($1, 'C:', 'folder', NULL) RETURNING *",
+                "INSERT INTO vfs_nodes (user_id, name, path, node_type, parent_id) VALUES ($1, 'C:', 'C:', 'folder', NULL) RETURNING *",
                 [req.userId]
             );
         }
@@ -24,13 +24,13 @@ router.get('/root', verifyToken, async (req, res) => {
         const defaultFolders = ['Desktop', 'My Documents', 'My Pictures', 'My Music'];
         for (const folderName of defaultFolders) {
             const exists = await db.query(
-                "SELECT id FROM files WHERE user_id=$1 AND parent_id=$2 AND name=$3 AND is_deleted=false",
+                "SELECT id FROM vfs_nodes WHERE user_id=$1 AND parent_id=$2 AND name=$3 AND is_deleted=false",
                 [req.userId, rootId, folderName]
             );
             if (exists.rows.length === 0) {
                 await db.query(
-                    "INSERT INTO files (user_id, name, type, parent_id) VALUES ($1, $2, 'folder', $3)",
-                    [req.userId, folderName, rootId]
+                    "INSERT INTO vfs_nodes (user_id, name, path, node_type, parent_id) VALUES ($1, $2, $3, 'folder', $4)",
+                    [req.userId, folderName, 'C:/' + folderName, rootId]
                 );
             }
         }
@@ -40,9 +40,9 @@ router.get('/root', verifyToken, async (req, res) => {
         res.json({
             id: node.id,
             name: node.name,
-            node_type: node.type,
+            node_type: node.node_type,
             parent_id: node.parent_id,
-            path: '/' + node.name,
+            path: node.path || ('/' + node.name),
             created_at: node.created_at
         });
     } catch (err) {
@@ -55,15 +55,15 @@ router.get('/root', verifyToken, async (req, res) => {
 router.get('/:nodeId/children', verifyToken, async (req, res) => {
     try {
         const result = await db.query(
-            "SELECT * FROM files WHERE parent_id=$1 AND is_deleted=false ORDER BY type DESC, name",
+            "SELECT * FROM vfs_nodes WHERE parent_id=$1 AND is_deleted=false ORDER BY node_type DESC, name",
             [req.params.nodeId]
         );
         const children = result.rows.map(node => ({
             id: node.id,
             name: node.name,
-            node_type: node.type,
+            node_type: node.node_type,
             parent_id: node.parent_id,
-            path: '', // Not easily computable without recursion, Frontend can ignore or fetch path if needed
+            path: node.path || '',
             size_bytes: node.size_bytes,
             created_at: node.created_at
         }));
@@ -81,17 +81,23 @@ router.post('/create', verifyToken, async (req, res) => {
         return res.status(400).json({ error: 'Missing name or type' });
     }
     try {
+        // Find parent to construct path
+        const parentRes = await db.query("SELECT path FROM vfs_nodes WHERE id=$1", [parentId]);
+        const parentPath = parentRes.rows.length > 0 ? parentRes.rows[0].path : 'C:';
+        const newPath = `${parentPath}/${name}`;
+
         const result = await db.query(
-            `INSERT INTO files (user_id, name, type, parent_id)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-            [req.userId, name, type, parentId]
+            `INSERT INTO vfs_nodes (user_id, name, path, node_type, parent_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [req.userId, name, newPath, type, parentId]
         );
         const node = result.rows[0];
         res.status(201).json({
             id: node.id,
             name: node.name,
-            node_type: node.type,
+            node_type: node.node_type,
             parent_id: node.parent_id,
+            path: node.path,
             created_at: node.created_at
         });
     } catch (err) {
@@ -105,7 +111,7 @@ router.patch('/:nodeId/rename', verifyToken, async (req, res) => {
     const { newName } = req.body;
     if (!newName) return res.status(400).json({ error: 'Missing newName' });
     try {
-        const result = await db.query('UPDATE files SET name=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3 RETURNING *', [newName, req.params.nodeId, req.userId]);
+        const result = await db.query('UPDATE vfs_nodes SET name=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3 RETURNING *', [newName, req.params.nodeId, req.userId]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Node not found' });
         res.json({ message: 'Renamed successfully' });
     } catch (err) {
@@ -117,7 +123,7 @@ router.patch('/:nodeId/rename', verifyToken, async (req, res) => {
 // Delete a node (soft delete)
 router.delete('/:nodeId', verifyToken, async (req, res) => {
     try {
-        await db.query('UPDATE files SET is_deleted=true, updated_at=NOW() WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
+        await db.query('UPDATE vfs_nodes SET is_deleted=true, updated_at=NOW() WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
         res.json({ message: 'Deleted' });
     } catch (err) {
         console.error(err);
@@ -130,13 +136,13 @@ router.delete('/:nodeId', verifyToken, async (req, res) => {
 router.get('/recycle-bin/list', verifyToken, async (req, res) => {
     try {
         const result = await db.query(
-            "SELECT * FROM files WHERE user_id=$1 AND is_deleted=true ORDER BY updated_at DESC",
+            "SELECT * FROM vfs_nodes WHERE user_id=$1 AND is_deleted=true ORDER BY updated_at DESC",
             [req.userId]
         );
         const items = result.rows.map(node => ({
             id: node.id,
             name: node.name,
-            node_type: node.type,
+            node_type: node.node_type,
             parent_id: node.parent_id,
             size_bytes: node.size_bytes,
             created_at: node.created_at,
@@ -152,7 +158,7 @@ router.get('/recycle-bin/list', verifyToken, async (req, res) => {
 // Restore a file from recycle bin
 router.patch('/:nodeId/restore', verifyToken, async (req, res) => {
     try {
-        await db.query('UPDATE files SET is_deleted=false, updated_at=NOW() WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
+        await db.query('UPDATE vfs_nodes SET is_deleted=false, updated_at=NOW() WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
         res.json({ message: 'Restored' });
     } catch (err) {
         console.error(err);
@@ -163,7 +169,7 @@ router.patch('/:nodeId/restore', verifyToken, async (req, res) => {
 // Permanently delete a file
 router.delete('/:nodeId/permanent', verifyToken, async (req, res) => {
     try {
-        await db.query('DELETE FROM files WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
+        await db.query('DELETE FROM vfs_nodes WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
         res.json({ message: 'Permanently deleted' });
     } catch (err) {
         console.error(err);

@@ -7,6 +7,7 @@ import ControlPanel from '../apps/ControlPanel/ControlPanel';
 import Snake from '../apps/Snake/Snake';
 import Minesweeper from '../apps/Minesweeper/Minesweeper';
 import Solitaire from '../apps/Solitaire/Solitaire';
+import InternetExplorer from '../apps/InternetExplorer/InternetExplorer';
 
 export const DESKTOP_ICONS = [
     {
@@ -98,5 +99,14 @@ export const DESKTOP_ICONS = [
         component: Solitaire,
         defaultSize: { width: 800, height: 600 },
         minSize: { width: 600, height: 500 },
+    },
+    {
+        appId: 'internet-explorer',
+        label: 'Internet Explorer',
+        title: 'Internet Explorer',
+        src: 'https://win32.run/images/xp/icons/InternetExplorer6.png',
+        component: InternetExplorer,
+        defaultSize: { width: 900, height: 600 },
+        minSize: { width: 500, height: 350 },
     },
 ];

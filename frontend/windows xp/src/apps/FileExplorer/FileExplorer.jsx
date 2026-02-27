@@ -197,11 +197,81 @@ const FileExplorer = ({ mode }) => {
         }
     };
 
+    // ─── Tree-view state ─────────────────────────────
+    const [treeData, setTreeData] = useState(null);
+    const [expandedNodes, setExpandedNodes] = useState(new Set());
+
+    // Build tree on root load
+    useEffect(() => {
+        if (rootNode) {
+            buildTree(rootNode);
+        }
+    }, [rootNode]);
+
+    const buildTree = async (root) => {
+        try {
+            const res = await api.get(`/vfs/${root.id}/children`);
+            const folders = res.data.filter(n => n.node_type === 'folder');
+            setTreeData({
+                ...root,
+                children: folders,
+            });
+            setExpandedNodes(new Set([root.id]));
+        } catch (err) {
+            console.error('Tree build failed', err);
+        }
+    };
+
+    const toggleExpand = async (nodeId) => {
+        const next = new Set(expandedNodes);
+        if (next.has(nodeId)) {
+            next.delete(nodeId);
+        } else {
+            next.add(nodeId);
+        }
+        setExpandedNodes(next);
+    };
+
+    const handleTreeClick = (node) => {
+        setCurrentNode(node);
+        // rebuild path stack (simplified: root + this node)
+        if (rootNode && node.id === rootNode.id) {
+            setPathStack([{ id: node.id, name: node.name }]);
+        } else {
+            setPathStack([{ id: rootNode.id, name: rootNode.name }, { id: node.id, name: node.name }]);
+        }
+        fetchChildren(node.id);
+    };
+
     // ─── Icons ───────────────────────────────────────
     const getIcon = (type) =>
         type === 'folder'
             ? 'https://win32.run/images/xp/icons/FolderClosed.png'
-            : '📄';
+            : 'https://win32.run/images/xp/icons/Notepad.png';
+
+    // Recursive tree node renderer
+    const TreeNode = ({ node, depth = 0 }) => {
+        const isExpanded = expandedNodes.has(node.id);
+        const isActive = currentNode && currentNode.id === node.id;
+        const hasChildren = node.children && node.children.length > 0;
+
+        return (
+            <div>
+                <div
+                    className={`tree-item ${isActive ? 'tree-active' : ''}`}
+                    style={{ paddingLeft: 8 + depth * 16 }}
+                    onClick={() => { handleTreeClick(node); toggleExpand(node.id); }}
+                >
+                    <span className="tree-toggle">{hasChildren ? (isExpanded ? '▾' : '▸') : ' '}</span>
+                    <img src="https://win32.run/images/xp/icons/FolderClosed.png" alt="" className="tree-icon" />
+                    <span className="tree-label">{node.name}</span>
+                </div>
+                {isExpanded && node.children && node.children.map(child => (
+                    <TreeNode key={child.id} node={child} depth={depth + 1} />
+                ))}
+            </div>
+        );
+    };
 
     // ─── Render ──────────────────────────────────────
     return (
@@ -213,23 +283,37 @@ const FileExplorer = ({ mode }) => {
             <div className="explorer-toolbar">
                 {!isRecycleBin && (
                     <>
-                        <button className="exp-btn" title="Back" onClick={handleUp} disabled={pathStack.length <= 1}>◀ Back</button>
-                        <button className="exp-btn" title="Up" onClick={handleUp} disabled={pathStack.length <= 1}>⬆ Up</button>
+                        <button className="exp-btn" title="Back" onClick={handleUp} disabled={pathStack.length <= 1}>
+                            <img src="https://win32.run/images/xp/icons/Back.png" alt="" className="exp-toolbar-icon" /> Back
+                        </button>
+                        <button className="exp-btn" title="Up" onClick={handleUp} disabled={pathStack.length <= 1}>
+                            <img src="https://win32.run/images/xp/icons/Up.png" alt="" className="exp-toolbar-icon" /> Up
+                        </button>
                         <div className="exp-sep" />
-                        <button className="exp-btn" title="New Folder" onClick={() => { setIsCreating(true); setNewItemType('folder'); }}>📁 New Folder</button>
-                        <button className="exp-btn" title="New File" onClick={() => { setIsCreating(true); setNewItemType('file'); }}>📄 New File</button>
+                        <button className="exp-btn" title="New Folder" onClick={() => { setIsCreating(true); setNewItemType('folder'); }}>
+                            <img src="https://win32.run/images/xp/icons/FolderNew.png" alt="" className="exp-toolbar-icon" /> New Folder
+                        </button>
+                        <button className="exp-btn" title="New File" onClick={() => { setIsCreating(true); setNewItemType('file'); }}>
+                            <img src="https://win32.run/images/xp/icons/Notepad.png" alt="" className="exp-toolbar-icon" /> New File
+                        </button>
                         <div className="exp-sep" />
                     </>
                 )}
                 {isRecycleBin && (
-                    <span style={{ padding: '2px 8px', fontWeight: 'bold', color: '#333' }}>🗑️ Recycle Bin</span>
+                    <span style={{ padding: '2px 8px', fontWeight: 'bold', color: '#333', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="" className="exp-toolbar-icon" /> Recycle Bin
+                    </span>
                 )}
                 <div className="exp-view-group">
-                    {['list', 'details', 'icons'].map(v => (
-                        <button key={v} className={`exp-btn ${view === v ? 'active' : ''}`} onClick={() => setView(v)} title={v}>
-                            {v === 'list' ? '☰' : v === 'details' ? '≡' : '⊞'}
-                        </button>
-                    ))}
+                    <button className={`exp-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')} title="List view">
+                        <img src="https://win32.run/images/xp/icons/List.png" alt="" className="exp-toolbar-icon" />
+                    </button>
+                    <button className={`exp-btn ${view === 'details' ? 'active' : ''}`} onClick={() => setView('details')} title="Details view">
+                        <img src="https://win32.run/images/xp/icons/Details.png" alt="" className="exp-toolbar-icon" />
+                    </button>
+                    <button className={`exp-btn ${view === 'icons' ? 'active' : ''}`} onClick={() => setView('icons')} title="Icons view">
+                        <img src="https://win32.run/images/xp/icons/LargeIcons.png" alt="" className="exp-toolbar-icon" />
+                    </button>
                 </div>
             </div>
 
@@ -248,7 +332,15 @@ const FileExplorer = ({ mode }) => {
 
             {/* Body */}
             <div className="explorer-body">
-                <div className="explorer-files" style={{ width: '100%' }}>
+                {/* Tree-View Sidebar */}
+                {!isRecycleBin && treeData && (
+                    <div className="explorer-sidebar">
+                        <div className="sidebar-section-label">Folders</div>
+                        <TreeNode node={treeData} depth={0} />
+                    </div>
+                )}
+
+                <div className="explorer-files" style={{ width: isRecycleBin ? '100%' : undefined }}>
                     {/* Create inline form */}
                     {isCreating && !isRecycleBin && (
                         <div style={{ padding: '8px', background: '#ece9d8', borderBottom: '1px solid #ccc', display: 'flex', gap: 4 }}>
@@ -285,9 +377,7 @@ const FileExplorer = ({ mode }) => {
                                         <tr key={f.id} className="exp-row" onDoubleClick={() => handleOpenNode(f)}>
                                             <td className="exp-name-cell">
                                                 <span className="exp-file-icon">
-                                                    {f.node_type === 'folder'
-                                                        ? <img src={getIcon(f.node_type)} alt="" className="exp-img-icon" />
-                                                        : getIcon(f.node_type)}
+                                                    <img src={getIcon(f.node_type)} alt="" className="exp-img-icon" />
                                                 </span>
                                                 {renamingId === f.id ? (
                                                     <input
@@ -308,13 +398,21 @@ const FileExplorer = ({ mode }) => {
                                             <td>
                                                 {isRecycleBin ? (
                                                     <>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">♻️</button>
-                                                        <button onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete Permanently">❌</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">
+                                                            <img src="https://win32.run/images/xp/icons/Undo.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Restore
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete Permanently">
+                                                            <img src="https://win32.run/images/xp/icons/Delete.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Delete
+                                                        </button>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️</button>
-                                                        <button onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">
+                                                            <img src="https://win32.run/images/xp/icons/Rename.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Rename
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">
+                                                            <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Delete
+                                                        </button>
                                                     </>
                                                 )}
                                             </td>
@@ -331,9 +429,7 @@ const FileExplorer = ({ mode }) => {
                             {children.map(f => (
                                 <div key={f.id} className="exp-icon-item" onDoubleClick={() => handleOpenNode(f)}>
                                     <span className="exp-icon-big">
-                                        {f.node_type === 'folder'
-                                            ? <img src={getIcon(f.node_type)} alt="" className="exp-img-icon-big" />
-                                            : getIcon(f.node_type)}
+                                        <img src={getIcon(f.node_type)} alt="" className="exp-img-icon-big" />
                                     </span>
                                     {renamingId === f.id ? (
                                         <input
@@ -350,13 +446,21 @@ const FileExplorer = ({ mode }) => {
                                     )}
                                     {isRecycleBin ? (
                                         <>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">♻️</button>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete">❌</button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">
+                                                <img src="https://win32.run/images/xp/icons/Undo.png" alt="Restore" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
+                                            </button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete">
+                                                <img src="https://win32.run/images/xp/icons/Delete.png" alt="Delete" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
+                                            </button>
                                         </>
                                     ) : (
                                         <>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️</button>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️</button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">
+                                                <img src="https://win32.run/images/xp/icons/Rename.png" alt="Rename" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
+                                            </button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">
+                                                <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="Delete" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
+                                            </button>
                                         </>
                                     )}
                                 </div>

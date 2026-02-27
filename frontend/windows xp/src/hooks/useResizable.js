@@ -1,21 +1,33 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useWindowManager } from '../context/WindowContext';
 
 const DIRECTIONS = {
-    right: { dx: 1, dy: 0, dw: 1, dh: 0 },
+    right: { dx: 0, dy: 0, dw: 1, dh: 0 },
     bottom: { dx: 0, dy: 0, dw: 0, dh: 1 },
     left: { dx: 1, dy: 0, dw: -1, dh: 0 },
     'bottom-right': { dx: 0, dy: 0, dw: 1, dh: 1 },
     'bottom-left': { dx: 1, dy: 0, dw: -1, dh: 1 },
 };
 
+/**
+ * useResizable — performance-optimised resize hook.
+ *
+ * Same ref-based pattern as useDraggable — keeps the windows array
+ * out of mousemove handler dependencies.
+ */
 export function useResizable(windowId) {
     const { windows, updatePosition, updateSize, focusWindow } = useWindowManager();
+    const winRef = useRef(null);
     const rafRef = useRef(null);
+
+    // Keep the ref sync'd to the latest window state
+    useEffect(() => {
+        winRef.current = windows.find(w => w.id === windowId) || null;
+    }, [windows, windowId]);
 
     const onResizeStart = useCallback(
         (e, direction) => {
-            const win = windows.find(w => w.id === windowId);
+            const win = winRef.current;
             if (!win || win.maximized) return;
 
             e.preventDefault();
@@ -40,10 +52,8 @@ export function useResizable(windowId) {
 
                 pendingW = Math.max(minW, startW + dx * dir.dw);
                 pendingH = Math.max(minH, startH + dy * dir.dh);
-                pendingX = startPX + (dir.dx ? dx : 0);
-                pendingY = startPY + (dir.dy ? dy : 0);
 
-                // Clamp left resize
+                // Clamp left resize — position moves inversely to width
                 if (direction === 'left' || direction === 'bottom-left') {
                     const actualDx = startW - pendingW;
                     pendingX = startPX + actualDx;
@@ -72,7 +82,8 @@ export function useResizable(windowId) {
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', onMouseUp);
         },
-        [windowId, windows, updateSize, updatePosition, focusWindow]
+        // No dependency on windows array — uses ref instead
+        [windowId, updateSize, updatePosition, focusWindow]
     );
 
     return { onResizeStart };

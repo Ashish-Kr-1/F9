@@ -32,7 +32,7 @@ router.post('/:nodeId/content', verifyToken, async (req, res) => {
 
     try {
         // Check if file exists
-        const fileRes = await db.query('SELECT * FROM files WHERE id=$1 AND user_id=$2', [nodeId, req.userId]);
+        const fileRes = await db.query('SELECT * FROM vfs_nodes WHERE id=$1 AND user_id=$2', [nodeId, req.userId]);
         if (fileRes.rows.length === 0) return res.status(404).json({ error: 'File not found' });
 
         let gcsKey = `user_${req.userId}/file_${nodeId}.txt`;
@@ -67,9 +67,9 @@ router.post('/:nodeId/content', verifyToken, async (req, res) => {
 
         await db.query(insertQuery, insertValues);
 
-        // Update files table with newest storage key / size
+        // Update vfs_nodes table with newest storage key / size
         await db.query(
-            `UPDATE files SET storage_key=$1, size_bytes=$2, mime_type='text/plain', updated_at=NOW() WHERE id=$3`,
+            `UPDATE vfs_nodes SET storage_key=$1, size_bytes=$2, mime_type='text/plain', updated_at=NOW() WHERE id=$3`,
             [gcsKey, size, nodeId]
         );
 
@@ -84,9 +84,9 @@ router.post('/:nodeId/content', verifyToken, async (req, res) => {
 router.get('/:nodeId/content', verifyToken, async (req, res) => {
     const { nodeId } = req.params;
     try {
-        // Get latest version or just check files table
+        // Get latest version or just check vfs_nodes table
         const result = await db.query(
-            `SELECT storage_key FROM files WHERE user_id=$1 AND id=$2`,
+            `SELECT storage_key FROM vfs_nodes WHERE user_id=$1 AND id=$2`,
             [req.userId, nodeId]
         );
         if (result.rows.length === 0 || !result.rows[0].storage_key) {

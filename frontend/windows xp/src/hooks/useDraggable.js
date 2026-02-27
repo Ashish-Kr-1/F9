@@ -1,14 +1,26 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useWindowManager } from '../context/WindowContext';
 
+/**
+ * useDraggable — performance-optimised drag hook.
+ *
+ * We store the current window state in a ref so the mousemove handler
+ * never needs to close over the `windows` array from the store (which
+ * would cause a new handler on every render / state update).
+ */
 export function useDraggable(windowId) {
     const { focusWindow, updatePosition, windows } = useWindowManager();
-    const dragRef = useRef(null);
+    const winRef = useRef(null);
     const rafRef = useRef(null);
+
+    // Keep the ref up-to-date whenever windows changes
+    useEffect(() => {
+        winRef.current = windows.find(w => w.id === windowId) || null;
+    }, [windows, windowId]);
 
     const onMouseDown = useCallback(
         (e) => {
-            const win = windows.find(w => w.id === windowId);
+            const win = winRef.current;
             if (!win || win.maximized) return;
 
             e.preventDefault();
@@ -44,7 +56,8 @@ export function useDraggable(windowId) {
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('mouseup', onMouseUp);
         },
-        [windowId, windows, focusWindow, updatePosition]
+        // Only windowId and stable callbacks — NOT windows array
+        [windowId, focusWindow, updatePosition]
     );
 
     return { onMouseDown };

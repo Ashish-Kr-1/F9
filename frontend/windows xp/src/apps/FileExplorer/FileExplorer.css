@@ -293,14 +293,68 @@
 }
 
 .del-btn-small {
-    padding: 0 3px;
+    padding: 2px 4px;
     font-size: 10px;
     cursor: pointer;
-    background: transparent;
-    border: none;
-    opacity: 0.5;
+    background: #ece9d8;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .del-btn-small:hover {
-    opacity: 1;
+    background: #d4d0c4;
+    border-color: #aaa;
+}
+
+/* ─── Tree-View Sidebar ─────────────────────────── */
+.tree-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 11px;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.tree-item:hover {
+    background: rgba(49, 106, 197, 0.1);
+}
+
+.tree-active {
+    background: #316ac5 !important;
+    color: #fff;
+}
+
+.tree-toggle {
+    width: 12px;
+    font-size: 10px;
+    text-align: center;
+    flex-shrink: 0;
+    color: #666;
+}
+
+.tree-active .tree-toggle {
+    color: #fff;
+}
+
+.tree-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.tree-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.exp-addr-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }

@@ -1,0 +1,339 @@
+/* ========================================
+   Internet Explorer - Windows XP Style
+   ======================================== */
+
+.ie-browser {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #fff;
+    font-family: 'Tahoma', 'Segoe UI', sans-serif;
+    font-size: 11px;
+}
+
+/* Menu Bar */
+.ie-menubar {
+    display: flex;
+    gap: 0;
+    background: #ece9d8;
+    border-bottom: 1px solid #aaa;
+    padding: 1px 2px;
+}
+
+.ie-menu-item {
+    padding: 2px 8px;
+    cursor: pointer;
+    color: #000;
+    font-size: 11px;
+}
+
+.ie-menu-item:hover {
+    background: #316ac5;
+    color: #fff;
+}
+
+/* Toolbar */
+.ie-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    background: linear-gradient(to bottom, #f7f5ee, #ece9d8);
+    border-bottom: 1px solid #aaa;
+    flex-wrap: wrap;
+}
+
+.ie-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 3px;
+    color: #000;
+    font-size: 11px;
+}
+
+.ie-nav-btn:hover:not(:disabled) {
+    background: #c1d2ee;
+    border-color: #316ac5;
+}
+
+.ie-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.ie-btn-icon {
+    font-size: 12px;
+}
+
+.ie-btn-icon-img {
+    width: 18px;
+    height: 18px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+}
+
+.ie-bookmark-icon {
+    width: 14px;
+    height: 14px;
+    image-rendering: pixelated;
+    margin-right: 2px;
+    vertical-align: middle;
+}
+
+/* Animated IE globe */
+.ie-loading-globe {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+}
+
+.ie-globe-img {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+    transition: opacity 0.2s;
+}
+
+.ie-globe-img.spinning {
+    animation: ie-globe-spin 0.8s linear infinite;
+}
+
+@keyframes ie-globe-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.ie-btn-text {
+    font-size: 11px;
+}
+
+.ie-toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: #aaa;
+    margin: 0 4px;
+}
+
+.ie-bookmark-btn {
+    padding: 2px 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #000;
+    white-space: nowrap;
+}
+
+.ie-bookmark-btn:hover {
+    background: #c1d2ee;
+    border-color: #316ac5;
+}
+
+/* Address Bar */
+.ie-address-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+    background: #ece9d8;
+    border-bottom: 1px solid #999;
+}
+
+.ie-address-label {
+    font-size: 11px;
+    color: #000;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+.ie-address-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #7f9db9;
+    border-radius: 1px;
+    padding: 1px 2px;
+}
+
+.ie-address-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.ie-address-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 12px;
+    font-family: 'Tahoma', sans-serif;
+    padding: 2px 0;
+    background: transparent;
+}
+
+.ie-go-btn {
+    padding: 2px 10px;
+    background: linear-gradient(to bottom, #f5f3e8, #d6d0c4);
+    border: 1px solid #999;
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 2px;
+    color: #000;
+}
+
+.ie-go-btn:hover {
+    background: linear-gradient(to bottom, #faf8f0, #e2ddcd);
+}
+
+/* Content */
+.ie-content {
+    flex: 1;
+    position: relative;
+    background: #fff;
+    overflow: hidden;
+}
+
+.ie-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Loading Bar */
+.ie-loading-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #e0e0e0;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.ie-loading-progress {
+    height: 100%;
+    width: 30%;
+    background: linear-gradient(to right, #3169c6, #5a8ed6, #3169c6);
+    animation: ie-loading-anim 1.2s ease-in-out infinite;
+}
+
+@keyframes ie-loading-anim {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(400%);
+    }
+}
+
+/* Error Page */
+.ie-error-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    z-index: 5;
+    font-family: 'Tahoma', sans-serif;
+}
+
+.ie-error-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.ie-error-page h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.ie-error-page p {
+    font-size: 12px;
+    color: #555;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+.ie-error-suggestions {
+    text-align: left;
+    margin: 16px 0;
+    max-width: 500px;
+}
+
+.ie-error-suggestions h3 {
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.ie-error-suggestions ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.ie-error-suggestions li {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+.ie-retry-btn {
+    margin-top: 16px;
+    padding: 6px 20px;
+    background: linear-gradient(to bottom, #f5f3e8, #d6d0c4);
+    border: 1px solid #999;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 3px;
+}
+
+.ie-retry-btn:hover {
+    background: linear-gradient(to bottom, #faf8f0, #e2ddcd);
+}
+
+/* Status Bar */
+.ie-statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 8px;
+    background: #ece9d8;
+    border-top: 1px solid #aaa;
+    font-size: 11px;
+    color: #333;
+    height: 20px;
+}
+
+.ie-status-text {
+    flex: 1;
+}
+
+.ie-status-zone {
+    padding: 0 8px;
+    border-left: 1px solid #aaa;
+}
