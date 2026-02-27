@@ -2,6 +2,8 @@
    Windows XP Browser Emulator — Global CSS
    ================================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Tahoma&display=swap');
+
 *,
 *::before,
 *::after {
@@ -16,7 +18,8 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Tahoma', 'Segoe UI', sans-serif;
+  font-family: 'Tahoma', 'Segoe UI', Geneva, Verdana, sans-serif;
+  font-size: 11px;
 }
 
 button {
@@ -29,74 +32,169 @@ button {
 
 /* ── Luna Blue (Default) ─────────────────────────────────────── */
 [data-theme="blue"] {
-  --xp-titlebar-gradient: linear-gradient(180deg, #4a8cf0 0%, #2454db 35%, #1842c0 65%, #2454db 100%);
-  --xp-titlebar-inactive: linear-gradient(180deg, #8aacdc 0%, #6088c0 100%);
-  --xp-taskbar-gradient: linear-gradient(180deg, #1f5bc4 0%, #3177d8 12%, #245ecc 46%, #2060cf 50%, #2564d4 80%, #1b52bd 100%);
-  --xp-taskbar-border: #1a4bab;
-  --xp-start-gradient: linear-gradient(180deg, #4ea040 0%, #3c8a2e 40%, #2d6e20 100%);
-  --xp-highlight: #2454db;
+  /* Taskbar – layered gradient matching real XP luna blue */
+  --xp-taskbar-gradient:
+    linear-gradient(180deg,
+      #245edb 0%,
+      #3f8cf7 3%,
+      #245edb 4%,
+      #1c4cc4 8%,
+      #2358d0 20%,
+      #2054cc 40%,
+      #1d4fc6 60%,
+      #2358d0 80%,
+      #1c4dc5 95%,
+      #183fad 100%);
+  --xp-taskbar-border-top: #3168d5;
+  --xp-taskbar-shine: rgba(255, 255, 255, 0.28);
+  --xp-taskbar-border: #0c3281;
+
+  /* Title bar */
+  --xp-titlebar-gradient: linear-gradient(180deg, #0058ee 0%, #3a80f7 8%, #0a5bed 20%, #0050d8 50%, #0345c0 80%, #0740b0 100%);
+  --xp-titlebar-inactive: linear-gradient(180deg, #7c9ac0 0%, #6488b4 35%, #5a7dab 65%, #6488b4 100%);
+
+  /* Start button – green glossy pill */
+  --xp-start-gradient:
+    linear-gradient(180deg,
+      #5cb85c 0%,
+      #4cac4c 10%,
+      #3d993d 25%,
+      #379337 40%,
+      #2d852d 55%,
+      #267926 70%,
+      #1a651a 90%,
+      #145214 100%);
+  --xp-start-shine: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.08) 50%, transparent 51%);
+  --xp-start-border: #1a5c1a;
+
+  --xp-highlight: #2b61d6;
   --xp-window-bg: #ffffff;
   --xp-border-outer: #0a246a;
-  --xp-tray-bg: linear-gradient(180deg, #1756d3 0%, #2060d4 100%);
+
+  /* System tray */
+  --xp-tray-bg:
+    linear-gradient(180deg,
+      #0e5ad4 0%,
+      #1563d8 20%,
+      #1058cc 50%,
+      #1058cc 80%,
+      #0b4ab8 100%);
+  --xp-tray-border: rgba(255, 255, 255, 0.12);
+
   --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
   --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
   --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
-  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
-  --xp-wallpaper: radial-gradient(ellipse at 30% 60%, #4fc060 0%, #2a9a30 40%, #1a7a20 80%, #0d5714 100%);
+
+  --xp-shadow: 2px 2px 8px rgba(0, 0, 0, 0.55);
+
+  /* Wallpaper — Bliss image with fallback gradient */
+  --xp-wallpaper: url('/wallpapers/bliss.png');
+  --xp-wallpaper-fallback: linear-gradient(180deg, #3a78d4 0%, #4a90e2 25%, #5aa050 55%, #3c8a30 75%, #2a7020 100%);
 }
 
 /* ── Olive Green ─────────────────────────────────────────────── */
 [data-theme="olive"] {
   --xp-titlebar-gradient: linear-gradient(180deg, #a0b060 0%, #6a7c3e 35%, #4e5f28 65%, #6a7c3e 100%);
   --xp-titlebar-inactive: linear-gradient(180deg, #c0c898 0%, #909870 100%);
-  --xp-taskbar-gradient: linear-gradient(180deg, #4e5828 0%, #6a7438 12%, #5a6430 46%, #556030 50%, #5a6430 80%, #444e22 100%);
+  --xp-taskbar-gradient:
+    linear-gradient(180deg,
+      #7b8a40 0%,
+      #8fa048 3%,
+      #7b8a40 4%,
+      #667830 8%,
+      #6e8035 20%,
+      #657830 40%,
+      #5d7028 60%,
+      #6e8035 80%,
+      #566825 95%,
+      #485820 100%);
+  --xp-taskbar-border-top: #8a9a48;
+  --xp-taskbar-shine: rgba(255, 255, 255, 0.22);
   --xp-taskbar-border: #3c4820;
   --xp-start-gradient: linear-gradient(180deg, #90a040 0%, #7a8a2e 40%, #606e1c 100%);
+  --xp-start-shine: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.06) 50%, transparent 51%);
+  --xp-start-border: #4a5820;
   --xp-highlight: #6a7c3e;
   --xp-window-bg: #fff;
   --xp-border-outer: #3c4820;
   --xp-tray-bg: linear-gradient(180deg, #505a28 0%, #5c662e 100%);
+  --xp-tray-border: rgba(255, 255, 255, 0.1);
   --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
   --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
   --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
-  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
-  --xp-wallpaper: radial-gradient(ellipse at 50% 50%, #9aaa60 0%, #607040 40%, #3e4e28 100%);
+  --xp-shadow: 2px 2px 8px rgba(0, 0, 0, 0.45);
+  --xp-wallpaper: url('/wallpapers/bliss.png');
+  --xp-wallpaper-fallback: radial-gradient(ellipse at 50% 50%, #9aaa60 0%, #607040 40%, #3e4e28 100%);
 }
 
 /* ── Silver ──────────────────────────────────────────────────── */
 [data-theme="silver"] {
   --xp-titlebar-gradient: linear-gradient(180deg, #d0d0d8 0%, #909098 35%, #707078 65%, #909098 100%);
   --xp-titlebar-inactive: linear-gradient(180deg, #e0e0e8 0%, #b0b0c0 100%);
-  --xp-taskbar-gradient: linear-gradient(180deg, #787880 0%, #949498 12%, #808088 46%, #787880 50%, #808088 80%, #6a6a72 100%);
+  --xp-taskbar-gradient:
+    linear-gradient(180deg,
+      #a0a0a8 0%,
+      #b0b0b8 3%,
+      #a0a0a8 4%,
+      #8c8c94 8%,
+      #949498 20%,
+      #8c8c94 40%,
+      #848488 60%,
+      #949498 80%,
+      #7c7c84 95%,
+      #6e6e76 100%);
+  --xp-taskbar-border-top: #b8b8c0;
+  --xp-taskbar-shine: rgba(255, 255, 255, 0.25);
   --xp-taskbar-border: #606068;
   --xp-start-gradient: linear-gradient(180deg, #a0a0a8 0%, #808088 40%, #606068 100%);
+  --xp-start-shine: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.06) 50%, transparent 51%);
+  --xp-start-border: #505058;
   --xp-highlight: #5080c0;
   --xp-window-bg: #fff;
   --xp-border-outer: #505058;
   --xp-tray-bg: linear-gradient(180deg, #707078 0%, #808088 100%);
+  --xp-tray-border: rgba(255, 255, 255, 0.12);
   --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.12);
   --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.22);
   --xp-taskbarbtn-active: rgba(0, 0, 0, 0.2);
-  --xp-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
-  --xp-wallpaper: radial-gradient(ellipse at 40% 60%, #c0c8d8 0%, #9098a8 50%, #606878 100%);
+  --xp-shadow: 2px 2px 8px rgba(0, 0, 0, 0.45);
+  --xp-wallpaper: url('/wallpapers/bliss.png');
+  --xp-wallpaper-fallback: radial-gradient(ellipse at 40% 60%, #c0c8d8 0%, #9098a8 50%, #606878 100%);
 }
 
 /* ── Royale (Media Center) ───────────────────────────────────── */
 [data-theme="royale"] {
   --xp-titlebar-gradient: linear-gradient(180deg, #3060a0 0%, #1e3a6e 35%, #142c58 65%, #1e3a6e 100%);
   --xp-titlebar-inactive: linear-gradient(180deg, #607098 0%, #405078 100%);
-  --xp-taskbar-gradient: linear-gradient(180deg, #0e1e3c 0%, #1a2e52 12%, #142644 46%, #101c38 50%, #142644 80%, #0a1630 100%);
+  --xp-taskbar-gradient:
+    linear-gradient(180deg,
+      #182e54 0%,
+      #243c66 3%,
+      #182e54 4%,
+      #101e3c 8%,
+      #1a2e52 20%,
+      #142644 40%,
+      #101c38 60%,
+      #1a2e52 80%,
+      #0e1830 95%,
+      #0a1228 100%);
+  --xp-taskbar-border-top: #2a4268;
+  --xp-taskbar-shine: rgba(255, 255, 255, 0.18);
   --xp-taskbar-border: #080e20;
   --xp-start-gradient: linear-gradient(180deg, #2050a0 0%, #163880 40%, #0e2860 100%);
+  --xp-start-shine: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 51%);
+  --xp-start-border: #0a1a40;
   --xp-highlight: #1e3a8a;
   --xp-window-bg: #f0f4ff;
   --xp-border-outer: #0a1a40;
   --xp-tray-bg: linear-gradient(180deg, #101e40 0%, #182a54 100%);
+  --xp-tray-border: rgba(255, 255, 255, 0.08);
   --xp-taskbarbtn-bg: rgba(255, 255, 255, 0.08);
   --xp-taskbarbtn-hover: rgba(255, 255, 255, 0.18);
   --xp-taskbarbtn-active: rgba(0, 0, 0, 0.3);
-  --xp-shadow: 3px 3px 12px rgba(0, 0, 0, 0.6);
-  --xp-wallpaper: radial-gradient(ellipse at 60% 40%, #3060b0 0%, #1a3070 40%, #0a1840 100%);
+  --xp-shadow: 2px 2px 10px rgba(0, 0, 0, 0.6);
+  --xp-wallpaper: url('/wallpapers/bliss.png');
+  --xp-wallpaper-fallback: radial-gradient(ellipse at 60% 40%, #3060b0 0%, #1a3070 40%, #0a1840 100%);
 }
 
 /* ================================================================

@@ -1,7 +1,7 @@
 .xp-window-frame {
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--xp-border-outer);
+    border: 3px solid var(--xp-border-outer);
     border-radius: 8px 8px 0 0;
     overflow: hidden;
     box-shadow: var(--xp-shadow);
@@ -14,22 +14,40 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 30px;
-    padding: 0 4px 0 6px;
+    height: 28px;
+    padding: 0 3px 0 5px;
     background: var(--xp-titlebar-gradient);
-    border-radius: 7px 7px 0 0;
+    border-radius: 5px 5px 0 0;
     cursor: default;
     flex-shrink: 0;
+    position: relative;
+}
+
+/* Title bar top inner shine */
+.xp-title-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 5px 5px 0 0;
+    pointer-events: none;
 }
 
 .xp-title-bar.inactive {
     background: var(--xp-titlebar-inactive);
 }
 
+.xp-title-bar.inactive::before {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 .xp-title-bar-left {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     overflow: hidden;
     flex: 1;
 }
@@ -38,6 +56,7 @@
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+    image-rendering: pixelated;
 }
 
 .xp-title-text {
@@ -51,7 +70,7 @@
 }
 
 .xp-title-bar.inactive .xp-title-text {
-    color: #d0d0d0;
+    color: #d8d8d8;
     text-shadow: none;
 }
 
@@ -79,6 +98,19 @@
     overflow: hidden;
 }
 
+/* Top shine on buttons */
+.xp-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%);
+    pointer-events: none;
+    border-radius: 2px 2px 0 0;
+}
+
 .xp-btn-minimize,
 .xp-btn-maximize {
     background: linear-gradient(180deg, #d8e8f8 0%, #a0c0e0 40%, #6090c0 100%);
@@ -103,6 +135,8 @@
     pointer-events: none;
     line-height: 1;
     font-size: 9px;
+    position: relative;
+    z-index: 1;
 }
 
 /* ── Window Content ────────────────────────────── */
@@ -111,6 +145,7 @@
     overflow: auto;
     background: var(--xp-window-bg);
     position: relative;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* ── Resize Handles ────────────────────────────── */
@@ -165,5 +200,5 @@
 }
 
 .xp-window-frame.inactive {
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
 }
