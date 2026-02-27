@@ -4,6 +4,7 @@ import "./Clippy.css";
 
 export default function Clippy() {
     const [open, setOpen] = useState(false);
+    const [visible, setVisible] = useState(true);
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState([]);
     const [isThinking, setIsThinking] = useState(false);
@@ -44,10 +45,19 @@ export default function Clippy() {
         }
     };
 
+    if (!visible) return null;
+
     return (
         <div className="clippy-container">
             {open && (
                 <div className="clippy-bubble">
+                    <button
+                        className="clippy-close-bubble"
+                        onClick={() => setOpen(false)}
+                        title="Close bubble"
+                    >
+                        ×
+                    </button>
                     <div className="clippy-chat-history">
                         {chat.length === 0 && (
                             <div style={{ color: "#666", fontStyle: "italic" }}>
@@ -77,6 +87,11 @@ export default function Clippy() {
                         />
                         <button className="clippy-button" onClick={sendMessage} disabled={isThinking}>
                             Send
+                        </button>
+                    </div>
+                    <div className="clippy-actions">
+                        <button className="clippy-shutdown-btn" onClick={() => setVisible(false)}>
+                            Shut down Clippy
                         </button>
                     </div>
                 </div>
