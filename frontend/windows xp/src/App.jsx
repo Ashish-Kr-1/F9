@@ -4,8 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Desktop from './components/Desktop/Desktop';
 import Taskbar from './components/Taskbar/Taskbar';
 import LoginScreen from './components/LoginScreen/LoginScreen';
-import Desktop from './components/Desktop/Desktop';
-import Taskbar from './components/Taskbar/Taskbar';
 import './index.css';
 
 function AppContent() {
