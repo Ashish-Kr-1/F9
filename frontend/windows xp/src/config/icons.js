@@ -8,6 +8,7 @@ import Snake from '../apps/Snake/Snake';
 import Minesweeper from '../apps/Minesweeper/Minesweeper';
 import Solitaire from '../apps/Solitaire/Solitaire';
 import InternetExplorer from '../apps/InternetExplorer/InternetExplorer';
+import CommandPrompt from '../apps/CommandPrompt/CommandPrompt';
 
 export const DESKTOP_ICONS = [
     {
@@ -108,5 +109,14 @@ export const DESKTOP_ICONS = [
         component: InternetExplorer,
         defaultSize: { width: 900, height: 600 },
         minSize: { width: 500, height: 350 },
+    },
+    {
+        appId: 'cmd',
+        label: 'Command Prompt',
+        title: 'Command Prompt',
+        src: 'https://win32.run/images/xp/icons/Console.png',
+        component: CommandPrompt,
+        defaultSize: { width: 640, height: 380 },
+        minSize: { width: 300, height: 200 },
     },
 ];

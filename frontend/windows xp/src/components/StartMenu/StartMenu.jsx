@@ -28,6 +28,7 @@ const StartMenu = ({ onClose }) => {
     // Pinned apps for left panel (like real XP — top section)
     const pinnedApps = [
         { appId: 'internet-explorer', label: 'Internet Explorer', iconUrl: 'https://win32.run/images/xp/icons/InternetExplorer6.png', bold: true },
+        { appId: 'cmd', label: 'Command Prompt', iconUrl: 'https://win32.run/images/xp/icons/Console.png' },
         { appId: 'notepad', label: 'Notepad', iconUrl: 'https://win32.run/images/xp/icons/Notepad.png' },
         { appId: 'paint', label: 'Paint', iconUrl: 'https://win32.run/images/xp/icons/Paint.png' },
     ];
