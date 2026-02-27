@@ -47,15 +47,15 @@ const StartMenu = ({ onClose }) => {
 
                     {/* Static items */}
                     <button className="start-menu-item" onClick={onClose}>
-                        <img src="/icons/documents.png" alt="" className="start-menu-item-icon" />
+                        <img src="https://win32.run/images/xp/icons/FolderClosed.png" alt="" className="start-menu-item-icon" />
                         <span className="start-menu-item-label">My Documents</span>
                     </button>
                     <button className="start-menu-item" onClick={onClose}>
-                        <img src="/icons/computer.png" alt="" className="start-menu-item-icon" />
+                        <img src="https://win32.run/images/xp/icons/MyComputer.png" alt="" className="start-menu-item-icon" />
                         <span className="start-menu-item-label">My Computer</span>
                     </button>
                     <button className="start-menu-item" onClick={onClose}>
-                        <span className="start-menu-emoji">🌐</span>
+                        <img src="https://win32.run/images/xp/icons/InternetExplorer6.png" alt="" className="start-menu-item-icon" />
                         <span className="start-menu-item-label">Internet Explorer</span>
                     </button>
                 </div>
@@ -63,32 +63,32 @@ const StartMenu = ({ onClose }) => {
                 {/* Right panel */}
                 <div className="start-menu-right">
                     <button className="start-menu-right-item">
-                        <span>📁</span> My Documents
+                        <img src="https://win32.run/images/xp/icons/FolderClosed.png" alt="" className="start-menu-right-icon" /> My Documents
                     </button>
                     <button className="start-menu-right-item">
-                        <span>🖼️</span> My Pictures
+                        <img src="https://win32.run/images/xp/icons/MyPictures.png" alt="" className="start-menu-right-icon" /> My Pictures
                     </button>
                     <button className="start-menu-right-item">
-                        <span>🎵</span> My Music
+                        <img src="https://win32.run/images/xp/icons/MyMusic.png" alt="" className="start-menu-right-icon" /> My Music
                     </button>
                     <button className="start-menu-right-item">
-                        <span>🖥️</span> My Computer
+                        <img src="https://win32.run/images/xp/icons/MyComputer.png" alt="" className="start-menu-right-icon" /> My Computer
                     </button>
                     <div className="start-menu-divider-h" />
                     <button className="start-menu-right-item">
-                        <span>⚙️</span> Control Panel
+                        <img src="https://win32.run/images/xp/icons/ControlPanel.png" alt="" className="start-menu-right-icon" /> Control Panel
                     </button>
                     <button className="start-menu-right-item">
-                        <span>🖨️</span> Printers &amp; Faxes
+                        <img src="https://win32.run/images/xp/icons/Programs.png" alt="" className="start-menu-right-icon" /> Printers &amp; Faxes
                     </button>
                     <button className="start-menu-right-item">
-                        <span>❓</span> Help and Support
+                        <img src="https://win32.run/images/xp/icons/HelpandSupport.png" alt="" className="start-menu-right-icon" /> Help and Support
                     </button>
                     <button className="start-menu-right-item">
-                        <span>🔍</span> Search
+                        <img src="https://win32.run/images/xp/icons/Search.png" alt="" className="start-menu-right-icon" /> Search
                     </button>
                     <button className="start-menu-right-item">
-                        <span>⚡</span> Run...
+                        <img src="https://win32.run/images/xp/icons/Run.png" alt="" className="start-menu-right-icon" /> Run...
                     </button>
                 </div>
             </div>
@@ -96,10 +96,10 @@ const StartMenu = ({ onClose }) => {
             {/* Footer */}
             <div className="start-menu-footer">
                 <button className="start-footer-btn" onClick={onClose}>
-                    <span>🔒</span> Log Off
+                    <img src="https://win32.run/images/xp/icons/Logout.png" alt="" className="start-footer-icon" /> Log Off
                 </button>
                 <button className="start-footer-btn" onClick={onClose}>
-                    <span>⏻</span> Turn Off Computer
+                    <img src="https://win32.run/images/xp/icons/Power.png" alt="" className="start-footer-icon" /> Turn Off Computer
                 </button>
             </div>
         </div>

@@ -45,7 +45,7 @@ const WindowFrame = memo(({ win }) => {
             >
                 <div className="title-bar-text" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     {win.icon && (
-                        <img src={win.icon} alt="" style={{ width: 16, height: 16 }} />
+                        <img src={win.icon} alt="" style={{ width: 16, height: 16, imageRendering: 'pixelated' }} />
                     )}
                     <span>{win.title}</span>
                 </div>

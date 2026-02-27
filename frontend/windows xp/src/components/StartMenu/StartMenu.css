@@ -125,14 +125,8 @@
 .start-menu-item-icon {
     width: 24px;
     height: 24px;
-    image-rendering: pixelated;
-    flex-shrink: 0;
-}
-
-.start-menu-emoji {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
+    image-rendering: auto;
+    /* PNGs look better with auto interpolation when small */
     flex-shrink: 0;
 }
 
@@ -169,6 +163,12 @@
     width: 100%;
 }
 
+.start-menu-right-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
 .start-menu-right-item:hover {
     background: var(--xp-highlight);
     color: #fff;
@@ -195,7 +195,7 @@
 .start-footer-btn {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     padding: 3px 10px;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -205,6 +205,12 @@
     font-family: 'Tahoma', sans-serif;
     cursor: pointer;
     transition: background 0.08s;
+}
+
+.start-footer-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
 }
 
 .start-footer-btn:hover {
