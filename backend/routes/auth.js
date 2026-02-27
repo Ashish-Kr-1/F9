@@ -37,9 +37,10 @@ router.post('/register', async (req, res) => {
 
         const userId = newUser.rows[0].id;
 
-        // Create root file node for the new user
+        // Create root VFS node ("C:") for the new user using the correct schema table
         await db.query(
-            "INSERT INTO files (user_id, name, type, parent_id) VALUES ($1, 'C:', 'folder', NULL)",
+            `INSERT INTO vfs_nodes (user_id, path, name, node_type, parent_id)
+             VALUES ($1, 'C:', 'C:', 'folder', NULL)`,
             [userId]
         );
 

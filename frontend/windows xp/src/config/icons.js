@@ -2,6 +2,7 @@ import Notepad from '../apps/Notepad/Notepad';
 import Paint from '../apps/Paint/Paint';
 import Calculator from '../apps/Calculator/Calculator';
 import FileExplorer from '../apps/FileExplorer/FileExplorer';
+import RecycleBinExplorer from '../apps/RecycleBin/RecycleBinExplorer';
 import ControlPanel from '../apps/ControlPanel/ControlPanel';
 import Snake from '../apps/Snake/Snake';
 import Minesweeper from '../apps/Minesweeper/Minesweeper';
