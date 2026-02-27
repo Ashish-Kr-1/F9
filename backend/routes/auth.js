@@ -22,14 +22,17 @@ router.post('/register', async (req, res) => {
             return res.status(409).json({ error: 'User already exists' });
         }
 
+        // Default username to email prefix if not provided
+        const username = req.body.username || email.split('@')[0];
+
         // Hash password
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
         // Insert new user
         const newUser = await db.query(
-            'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email, created_at',
-            [email, passwordHash]
+            'INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, created_at',
+            [email, username, passwordHash]
         );
 
         // Generate token
@@ -93,7 +96,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', verifyToken, async (req, res) => {
     try {
         const userQuery = await db.query(
-            'SELECT id, email, storage_limit_bytes, storage_used_bytes, created_at, updated_at FROM users WHERE id = $1',
+            'SELECT id, email, username, storage_quota_bytes, storage_used_bytes, created_at, updated_at FROM users WHERE id = $1',
             [req.userId]
         );
 
