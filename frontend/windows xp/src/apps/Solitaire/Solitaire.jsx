@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './Solitaire.css';
 
 // Suit Symbols & Colors
@@ -39,6 +40,8 @@ const shuffle = (deck) => {
 };
 
 const Solitaire = () => {
+    const { api, user } = useAuth();
+
     // Game State
     const [stock, setStock] = useState([]);
     const [waste, setWaste] = useState([]);
@@ -48,6 +51,12 @@ const Solitaire = () => {
     // Interaction State
     const [selectedCards, setSelectedCards] = useState(null); // { source: 'tableau', colIndex: 0, cardIndex: 3 }
     const [won, setWon] = useState(false);
+
+    // Timer & Leaderboard State
+    const [timePassed, setTimePassed] = useState(0);
+    const [timerRunning, setTimerRunning] = useState(false);
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     const initGame = useCallback(() => {
         const newDeck = shuffle(createDeck());
@@ -72,20 +81,65 @@ const Solitaire = () => {
         setFoundations([[], [], [], []]);
         setSelectedCards(null);
         setWon(false);
+        setTimePassed(0);
+        setTimerRunning(false);
     }, []);
 
     useEffect(() => {
         initGame();
     }, [initGame]);
 
+    useEffect(() => {
+        let interval;
+        if (timerRunning && !won) {
+            interval = setInterval(() => {
+                setTimePassed((prev) => Math.min(prev + 1, 9999));
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timerRunning, won]);
+
+    const handleGameWon = async (finalTime) => {
+        if (user) {
+            try {
+                // For Solitaire, we want to submit the time. A lower time is better.
+                await api.post('/scores', { game_name: 'solitaire', score: finalTime });
+                fetchLeaderboard();
+            } catch (error) {
+                console.error("Failed to submit score", error);
+            }
+        }
+    };
+
+    const fetchLeaderboard = async () => {
+        if (!user) return;
+        try {
+            const res = await api.get('/scores/solitaire');
+            setLeaderboard(res.data);
+            setShowLeaderboard(true);
+        } catch (error) {
+            console.error("Failed to fetch leaderboard", error);
+        }
+    };
+
     // Check Win Condition
     useEffect(() => {
-        if (foundations.every(f => f.length === 13)) {
+        if (!won && foundations.every(f => f.length === 13)) {
             setWon(true);
+            setTimerRunning(false);
+            handleGameWon(timePassed);
         }
-    }, [foundations]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [foundations, won]);
+
+    const startTimerIfNeeded = () => {
+        if (!timerRunning && !won) {
+            setTimerRunning(true);
+        }
+    };
 
     const drawCard = () => {
+        startTimerIfNeeded();
         setSelectedCards(null);
         if (stock.length > 0) {
             const drawn = { ...stock[stock.length - 1], isFaceUp: true };
@@ -113,6 +167,7 @@ const Solitaire = () => {
 
     const handleDoubleClick = (source, colIndex, cardIndex, card) => {
         if (!card.isFaceUp) return;
+        startTimerIfNeeded();
 
         let topCard = null;
         let fromCol = colIndex;
@@ -159,6 +214,8 @@ const Solitaire = () => {
             // If a top face-down card was somehow clicked, do nothing because the flipTopCards handles automatic flipping
             return;
         }
+
+        startTimerIfNeeded();
 
         // Deselect if clicking the same thing
         if (selectedCards && selectedCards.source === source && selectedCards.colIndex === colIndex && selectedCards.cardIndex === cardIndex) {
@@ -299,13 +356,40 @@ const Solitaire = () => {
 
     return (
         <div className="solitaire-app">
-            <div className="solitaire-top-bar">
-                <button onClick={initGame}>New Game</button>
+            <div className="solitaire-top-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <button onClick={initGame}>New Game</button>
+                    {user && (
+                        <button onClick={fetchLeaderboard} style={{ marginLeft: '10px' }}>Leaderboard</button>
+                    )}
+                </div>
+                <div style={{ color: 'black', fontWeight: 'bold', fontFamily: 'Courier New', fontSize: '18px', paddingRight: '10px' }}>
+                    Time: {timePassed}s
+                </div>
             </div>
 
-            {won && (
+            {showLeaderboard && (
+                <div className="solitaire-win-banner" style={{ background: 'rgba(0,0,0,0.95)' }}>
+                    <h2 style={{ color: 'gold', margin: '0 0 10px 0', fontSize: '1.5rem' }}>Fastest Times</h2>
+                    <div style={{ background: '#222', padding: '10px', borderRadius: '5px', marginBottom: '15px', color: 'white', maxHeight: '150px', overflowY: 'auto' }}>
+                        {leaderboard.length === 0 ? <p style={{ fontSize: '1rem' }}>No times yet!</p> : (
+                            <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '1.2rem', textAlign: 'left' }}>
+                                {leaderboard.map((entry, idx) => (
+                                    <li key={idx} style={{ marginBottom: '5px' }}>
+                                        <span style={{ color: '#0f0' }}>{entry.username}</span> - {entry.score}s
+                                    </li>
+                                ))}
+                            </ol>
+                        )}
+                    </div>
+                    <button onClick={() => setShowLeaderboard(false)}>Close</button>
+                </div>
+            )}
+
+            {won && !showLeaderboard && (
                 <div className="solitaire-win-banner">
                     <h2>You Won!</h2>
+                    <p>Time: {timePassed}s</p>
                     <button onClick={initGame}>Play Again</button>
                 </div>
             )}
