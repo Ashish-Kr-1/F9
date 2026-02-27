@@ -51,7 +51,7 @@ export default function Clippy() {
                     <div className="clippy-chat-history">
                         {chat.length === 0 && (
                             <div style={{ color: "#666", fontStyle: "italic" }}>
-                                It looks like you're writing a letter. Need some help?
+                                Hey You yes YOU!!. Need some help?
                             </div>
                         )}
                         {chat.map((msg, i) => (
