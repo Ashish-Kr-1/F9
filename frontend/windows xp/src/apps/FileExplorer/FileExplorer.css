@@ -266,3 +266,41 @@
     font-size: 11px;
     color: #555;
 }
+
+/* Rename input */
+.rename-input {
+    border: 1px solid #316ac5;
+    outline: none;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    padding: 1px 3px;
+    width: 120px;
+}
+
+/* Action buttons in table */
+.exp-table td button {
+    padding: 1px 4px;
+    font-size: 11px;
+    cursor: pointer;
+    background: #ece9d8;
+    border: 1px solid #aaa;
+    border-radius: 2px;
+    margin-right: 2px;
+}
+
+.exp-table td button:hover {
+    background: #d4d0c4;
+}
+
+.del-btn-small {
+    padding: 0 3px;
+    font-size: 10px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    opacity: 0.5;
+}
+
+.del-btn-small:hover {
+    opacity: 1;
+}

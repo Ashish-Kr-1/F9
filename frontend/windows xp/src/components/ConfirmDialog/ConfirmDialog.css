@@ -1,0 +1,99 @@
+.xp-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.xp-confirm-dialog {
+    width: 370px;
+    background: #ece9d8;
+    border: 2px solid #0055ea;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.45);
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    overflow: hidden;
+}
+
+.xp-confirm-titlebar {
+    background: linear-gradient(180deg, #0a246a 0%, #3a6ea5 8%, #4a86c8 40%, #3a6ea5 88%, #0a246a 100%);
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.xp-confirm-close {
+    background: #c75050;
+    border: 1px solid #8b0000;
+    color: #fff;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    line-height: 1;
+    padding: 0;
+}
+
+.xp-confirm-close:hover {
+    background: #e06060;
+}
+
+.xp-confirm-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 16px 12px;
+}
+
+.xp-confirm-icon {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.xp-confirm-message {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #000;
+}
+
+.xp-confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 16px 14px;
+}
+
+.xp-confirm-btn {
+    min-width: 72px;
+    padding: 3px 12px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
+    border: 1px solid #003c74;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.xp-confirm-btn:hover {
+    background: linear-gradient(180deg, #fafafa 0%, #d6d2c2 100%);
+}
+
+.xp-confirm-btn:active {
+    background: #d6d2c2;
+    border-color: #000;
+}

@@ -1,0 +1,344 @@
+================================================================================
+  WINDOWS XP WEB CLONE — IMPLEMENTATION GUIDE
+  Feature-by-Feature Explanation for Web Developers
+================================================================================
+
+This document explains — in complete, step-by-step detail — how a web developer
+would implement each of the three core features of our Windows XP web clone:
+  1. User Authentication
+  2. File Manager (Virtual File System)
+  3. Notepad (Text Editor)
+
+The technology stack is:
+  Frontend  – React 18 (Vite) with JSX
+  Backend   – Node.js / Express 5
+  Database  – PostgreSQL (hosted on Supabase)
+  Storage   – Google Cloud Storage (with DB fallback)
+  Auth      – bcrypt for password hashing, JWT for session tokens
+
+================================================================================
+ 1. USER AUTHENTICATION
+================================================================================
+
+1.1  DATABASE DESIGN
+--------------------
+We need a `users` table that stores credentials and per-user metadata.
+
+    CREATE TABLE users (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email         TEXT NOT NULL UNIQUE,
+        username      VARCHAR(100) UNIQUE,
+        password_hash TEXT NOT NULL,
+        storage_quota_bytes BIGINT DEFAULT 10737418240,   -- 10 GB
+        storage_used_bytes  BIGINT DEFAULT 0,
+        created_at    TIMESTAMPTZ DEFAULT NOW(),
+        updated_at    TIMESTAMPTZ DEFAULT NOW(),
+        last_login    TIMESTAMPTZ
+    );
+
+Key decisions:
+  • UUID primary keys — avoids sequential ID guessing.
+  • password_hash — we NEVER store the raw password.
+  • storage_quota_bytes — allows per-user resource limits.
+
+1.2  BACKEND — REGISTRATION  (POST /api/auth/register)
+------------------------------------------------------
+File: backend/routes/auth.js
+
+Step-by-step flow:
+  1. Extract `email`, `password`, and optional `username` from req.body.
+  2. Validate that both email and password are present (return 400 otherwise).
+  3. Check if the email already exists in the DB:
+        SELECT id FROM users WHERE email = $1
+     If a row is returned → respond with 409 Conflict.
+  4. Derive a default username from the email prefix if none was given.
+  5. Hash the password with bcrypt (10 salt rounds):
+        const passwordHash = await bcrypt.hash(password, 10);
+  6. INSERT the new user row RETURNING id, email, username, created_at.
+  7. Immediately after, create a root folder for the user in the `files` table
+     so the File Manager has somewhere to start:
+        INSERT INTO files (user_id, name, type, parent_id)
+        VALUES ($userId, 'C:', 'folder', NULL)
+  8. Sign a JWT containing { userId } with a 7-day expiry:
+        jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' })
+  9. Return { user, token } with status 201.
+
+1.3  BACKEND — LOGIN  (POST /api/auth/login)
+---------------------------------------------
+  1. Extract `email` and `password` from req.body.
+  2. Look up the user:
+        SELECT * FROM users WHERE email = $1
+     No row → 401 "Invalid credentials".
+  3. Compare the supplied password against the hash:
+        await bcrypt.compare(password, user.password_hash)
+     Mismatch → 401.
+  4. Sign a JWT and return { user, token } as in registration.
+  5. Strip `password_hash` from the returned user object for safety.
+
+1.4  BACKEND — GET CURRENT USER  (GET /api/auth/me)
+----------------------------------------------------
+  • Protected by the `verifyToken` middleware (see below).
+  • Simply SELECT the user by req.userId and return their profile.
+
+1.5  JWT MIDDLEWARE  (backend/middleware/authMiddleware.js)
+----------------------------------------------------------
+  • Extracts the `Authorization: Bearer <token>` header.
+  • Calls jwt.verify(token, JWT_SECRET).
+  • On success, attaches `req.userId = decoded.userId` and calls next().
+  • On failure, returns 401.
+
+This middleware is applied to every protected route using:
+    router.get('/protected', verifyToken, handler);
+
+1.6  FRONTEND — AuthContext  (frontend/src/context/AuthContext.jsx)
+-------------------------------------------------------------------
+We use React Context to make user state available app-wide.
+
+  • Creates an Axios instance `api` with baseURL pointing to our backend.
+  • Provides `login(email, password)` and `register(email, password)` functions
+    that call the backend, store the JWT in localStorage, set the Authorization
+    header on the Axios instance, and update the `user` state.
+  • Provides `logout()` to clear the token and reset state.
+  • Every component can use `const { user, api } = useAuth()`.
+
+1.7  FRONTEND — LoginScreen  (frontend/src/components/LoginScreen/LoginScreen.jsx)
+-----------------------------------------------------------------------------------
+  • A Windows XP-themed login form with a user avatar, username input, and
+    password input.
+  • On submit, calls either `login()` or `register()` from AuthContext.
+  • Displays error messages inline.
+  • Toggles between "Log In" and "Create Account" views.
+
+1.8  FRONTEND — App.jsx Routing
+-------------------------------
+  • If `user` is null → show <LoginScreen />.
+  • If `user` is set → show the Desktop + Taskbar (the logged-in XP environment).
+  • This is a simple conditional render, no router library needed.
+
+
+================================================================================
+ 2. FILE MANAGER (Virtual File System)
+================================================================================
+
+2.1  DATABASE DESIGN
+--------------------
+We use the `files` table with a self-referential `parent_id` for hierarchy:
+
+    CREATE TABLE files (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id     UUID NOT NULL REFERENCES users(id),
+        name        TEXT NOT NULL,
+        type        TEXT NOT NULL CHECK (type IN ('file','folder')),
+        mime_type   TEXT,
+        size_bytes  BIGINT DEFAULT 0,
+        storage_key TEXT,            -- GCS object key
+        parent_id   UUID REFERENCES files(id),
+        is_deleted  BOOLEAN DEFAULT false,
+        created_at  TIMESTAMP DEFAULT NOW(),
+        updated_at  TIMESTAMP DEFAULT NOW()
+    );
+
+And a `file_versions` table for version tracking:
+
+    CREATE TABLE file_versions (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        file_id        UUID NOT NULL REFERENCES files(id),
+        version_number INTEGER NOT NULL,
+        storage_key    TEXT NOT NULL,
+        size_bytes     BIGINT NOT NULL,
+        created_at     TIMESTAMP DEFAULT NOW()
+    );
+
+Design rationale:
+  • Adjacency list (parent_id) is simpler than materialized path for our use case.
+  • `is_deleted` enables soft-delete / Recycle Bin logic.
+  • `storage_key` maps to a Google Cloud Storage object.
+
+2.2  BACKEND ROUTES  (backend/routes/vfs.js)
+--------------------------------------------
+
+GET /api/vfs/root
+  • Queries for the user's root folder (parent_id IS NULL).
+  • If none exists (legacy user), auto-creates one.
+  • Returns { id, name, node_type, parent_id, path, created_at }.
+
+GET /api/vfs/:nodeId/children
+  • SELECT * FROM files WHERE parent_id = $nodeId AND is_deleted = false
+  • Returns an array of child nodes.
+
+POST /api/vfs/create
+  • Body: { name, type, parentId }
+  • Inserts into `files` with the user's ID.
+  • Returns the newly created node.
+
+PATCH /api/vfs/:nodeId/rename
+  • Body: { newName }
+  • UPDATE files SET name = $newName WHERE id = $nodeId AND user_id = $userId.
+  • Returns success message.
+
+DELETE /api/vfs/:nodeId
+  • Soft-delete: UPDATE files SET is_deleted = true.
+  • This preserves the data for potential restore.
+
+2.3  FILE CONTENT ROUTES  (backend/routes/files.js)
+---------------------------------------------------
+
+POST /api/files/:nodeId/content
+  • Body: { text }
+  • If GCS is configured (GCS_BUCKET_NAME env var set):
+      – Upload text to `bucket.file(gcsKey).save(text)`.
+  • Else: fallback to storing content directly in `file_versions.fallback_content`.
+  • Insert a new row in `file_versions` with incremented version number.
+  • Update `files.storage_key` and `files.size_bytes`.
+
+GET /api/files/:nodeId/content
+  • Look up `files.storage_key`.
+  • If GCS: download from bucket and return text.
+  • If fallback: query latest `file_versions.fallback_content`.
+  • Return { content: "..." }.
+
+2.4  GOOGLE CLOUD STORAGE INTEGRATION
+--------------------------------------
+  • We use `@google-cloud/storage` npm package.
+  • On server startup, we try to initialize `new Storage()`.
+  • This requires either GOOGLE_APPLICATION_CREDENTIALS env var pointing to
+    a service account JSON file, or running on GCP with default credentials.
+  • If initialization fails, the server still works using DB fallback.
+  • Storage key format: `user_{userId}/file_{nodeId}.txt`
+
+2.5  FRONTEND — FileExplorer  (frontend/src/apps/FileExplorer/FileExplorer.jsx)
+--------------------------------------------------------------------------------
+
+State management:
+  • rootNode, currentNode — track which folder is open.
+  • children — array of items in the current folder.
+  • pathStack — [{id, name}, ...] breadcrumb trail for proper path display.
+  • view — 'details' | 'icons' | 'list' toggle.
+  • isCreating / newItemName / newItemType — inline create form.
+  • renamingId / renameValue — inline rename editing.
+
+Path display (the fix):
+  We do NOT rely on server-computed paths. Instead, we maintain a `pathStack`
+  array on the client. When the user navigates into folder "Documents", we push
+  { id, name: "Documents" } onto the stack. The address bar shows:
+      pathStack.map(p => p.name).join('\\')
+  → "C:\\Documents\\Projects"
+  This is always correct because it mirrors navigation actions 1:1.
+
+Navigation:
+  • handleOpenNode(folder) → push onto pathStack, fetch children.
+  • handleUp() → pop from pathStack, fetch parent's children.
+  • navigateToBreadcrumb(index) → slice stack and fetch.
+
+Create:
+  • Click "New Folder" or "New File" → shows inline input.
+  • On submit, POST /api/vfs/create → refresh children.
+
+Rename:
+  • Click ✏️ button → turns the name cell into an input field.
+  • On blur or Enter, PATCH /api/vfs/:nodeId/rename → refresh children.
+  • On Escape → cancel.
+
+Delete:
+  • Click 🗑️ button → confirm dialog → DELETE /api/vfs/:nodeId.
+
+Opening files:
+  • Double-clicking a file node opens Notepad via the WindowManager:
+      openWindow({ appId, title, component: Notepad, componentProps: { fileNode } })
+  • The `componentProps` are passed through WindowContext to the Window component.
+
+
+================================================================================
+ 3. NOTEPAD (Text Editor)
+================================================================================
+
+3.1  CONCEPT
+------------
+Notepad is a simple plain-text editor that loads and saves files through the
+File Manager's storage API. It can also be opened standalone (with local
+download fallback).
+
+3.2  FRONTEND — Notepad  (frontend/src/apps/Notepad/Notepad.jsx)
+-----------------------------------------------------------------
+
+Props:
+  • fileNode (optional) — passed from FileExplorer via WindowManager.
+    Contains { id, name, node_type }.
+
+State:
+  • text — the editor content.
+  • fileName — display name in title.
+  • wordWrap — toggle for CSS white-space.
+  • loading — true while fetching content from backend.
+
+On mount (useEffect):
+  If fileNode is provided, call loadFile():
+      const res = await api.get(`/files/${fileNode.id}/content`);
+      setText(res.data.content || '');
+
+Save logic:
+  If fileNode is provided:
+      await api.post(`/files/${fileNode.id}/content`, { text });
+  Else (standalone, no file linked):
+      Create a Blob, generate an object URL, trigger browser download.
+
+UI structure:
+  1. Menu bar — File, Edit, Format, View, Help labels.
+  2. Toolbar — New button, Save button, Word Wrap checkbox.
+  3. Textarea — the main editing area.
+  4. Status bar — line count, character count, encoding (UTF-8).
+
+3.3  HOW NOTEPAD CONNECTS TO THE FILE MANAGER
+----------------------------------------------
+The integration works through these layers:
+
+  FileExplorer → WindowContext → Window → Notepad
+                                   ↑
+                            componentProps = { fileNode }
+
+  1. FileExplorer detects a file double-click.
+  2. Calls openWindow({ component: Notepad, componentProps: { fileNode } }).
+  3. WindowContext stores the window config including componentProps.
+  4. Window.jsx renders <WindowComponent windowId={...} {...componentProps} />.
+  5. Notepad receives `fileNode` as a prop and fetches its content from the API.
+
+3.4  BACKEND FLOW for NOTEPAD
+-----------------------------
+  Load:  Notepad → GET /api/files/:nodeId/content
+         → Backend reads from GCS (or fallback DB)
+         → Returns { content: "hello world" }
+
+  Save:  Notepad → POST /api/files/:nodeId/content  { text: "hello world" }
+         → Backend uploads to GCS (or stores in DB fallback)
+         → Creates new file_versions row
+         → Updates files.storage_key and size_bytes
+         → Returns { message: "Content saved", size, version }
+
+
+================================================================================
+ HOW EVERYTHING CONNECTS — THE BIG PICTURE
+================================================================================
+
+  ┌──────────────┐     HTTP/JSON      ┌──────────────────┐
+  │   React App  │ ←───────────────→  │  Express Server  │
+  │              │                    │                  │
+  │  AuthContext ─┼── /api/auth/*  ──→│  routes/auth.js  │──→ users table
+  │  FileExplorer┼── /api/vfs/*   ──→│  routes/vfs.js   │──→ files table
+  │  Notepad    ─┼── /api/files/* ──→│  routes/files.js │──→ GCS + file_versions
+  │  Clippy     ─┼── /api/clippy  ──→│  routes/clippy.js│──→ FastAPI AI backend
+  └──────────────┘                    └──────────────────┘
+                                            │
+                                       ┌────┴─────┐
+                                       │PostgreSQL │
+                                       │(Supabase) │
+                                       └──────────┘
+
+Security model:
+  • Every /api/vfs/* and /api/files/* route is protected by verifyToken
+    middleware.
+  • Every DB query includes user_id in the WHERE clause to enforce multi-tenancy.
+  • Passwords are bcrypt-hashed before storage; JWTs expire after 7 days.
+
+================================================================================
+ END OF DOCUMENT
+================================================================================

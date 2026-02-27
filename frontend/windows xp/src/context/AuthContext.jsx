@@ -12,28 +12,13 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Check if user is already logged in via token
+    // Development mode: always start unauthenticated
     useEffect(() => {
-        const initAuth = async () => {
-            const token = localStorage.getItem('xp_token');
-            if (token) {
-                try {
-                    // Set default header for all future requests
-                    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-                    // Verify token and get profile
-                    const res = await api.get('/auth/me');
-                    setUser(res.data);
-                } catch (error) {
-                    console.error("Token invalid or expired", error);
-                    localStorage.removeItem('xp_token');
-                    delete api.defaults.headers.common['Authorization'];
-                }
-            }
-            setLoading(false);
-        };
-
-        initAuth();
+        // Clear any existing token to force login screen during dev
+        localStorage.removeItem('xp_token');
+        delete api.defaults.headers.common['Authorization'];
+        setUser(null);
+        setLoading(false);
     }, []);
 
     const login = async (email, password) => {

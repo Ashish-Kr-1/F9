@@ -1,26 +1,63 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './Notepad.css';
 
-const Notepad = () => {
+const Notepad = ({ windowId, fileNode }) => {
+    const { api } = useAuth();
     const [text, setText] = useState('');
-    const [fileName, setFileName] = useState('Untitled');
+    const [fileName, setFileName] = useState(fileNode ? fileNode.name : 'Untitled');
     const [wordWrap, setWordWrap] = useState(true);
+    const [loading, setLoading] = useState(!!fileNode);
     const textRef = useRef(null);
+
+    useEffect(() => {
+        if (fileNode) {
+            loadFile();
+        }
+    }, [fileNode]);
+
+    const loadFile = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get(`/files/${fileNode.id}/content`);
+            console.log(res.data);
+            setText(res.data.content || '');
+            setFileName(fileNode.name);
+        } catch (error) {
+            console.error("Failed to load file", error);
+            alert("Failed to load file content.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleNew = () => {
         if (text && !window.confirm('Discard changes?')) return;
         setText('');
         setFileName('Untitled');
+        // Unbind from node? We can't actually change the props of the window easily right here.
+        // It's just a visual clear for now.
     };
 
-    const handleSave = () => {
-        const blob = new Blob([text], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${fileName}.txt`;
-        a.click();
-        URL.revokeObjectURL(url);
+    const handleSave = async () => {
+        if (fileNode) {
+            // Save to backend VFS
+            try {
+                await api.post(`/files/${fileNode.id}/content`, { text });
+            } catch (error) {
+                console.error("Failed to save", error);
+                alert("Failed to save to VFS.");
+            }
+        } else {
+            // Local download fallback
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileName}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     };
 
     const lines = text.split('\n').length;
@@ -51,15 +88,21 @@ const Notepad = () => {
             </div>
 
             {/* Text Area */}
-            <textarea
-                ref={textRef}
-                className="notepad-textarea"
-                value={text}
-                onChange={e => setText(e.target.value)}
-                spellCheck={false}
-                style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre', overflowX: wordWrap ? 'hidden' : 'auto' }}
-                placeholder="Type here..."
-            />
+            {loading ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+                    Loading file...
+                </div>
+            ) : (
+                <textarea
+                    ref={textRef}
+                    className="notepad-textarea"
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    spellCheck={false}
+                    style={{ whiteSpace: wordWrap ? 'pre-wrap' : 'pre', overflowX: wordWrap ? 'hidden' : 'auto' }}
+                    placeholder="Type here..."
+                />
+            )}
 
             {/* Status Bar */}
             <div className="notepad-statusbar">

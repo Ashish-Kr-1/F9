@@ -35,6 +35,7 @@ function windowReducer(state, action) {
                 maximized: false,
                 focused: true,
                 zIndex: state.highestZ + 1,
+                componentProps: action.payload.componentProps || {},
                 position: action.payload.position || {
                     x: 80 + (state.nextId % 8) * 30,
                     y: 60 + (state.nextId % 6) * 25,

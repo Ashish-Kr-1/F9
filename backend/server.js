@@ -14,6 +14,10 @@ app.use(express.json());
 // Auth Routes
 app.use('/api/auth', require('./routes/auth'));
 
+// File Manager and Notepad
+app.use('/api/vfs', require('./routes/vfs'));
+app.use('/api/files', require('./routes/files'));
+
 // Clippy AI Gateway — proxies to FastAPI internally
 app.use('/api/clippy', require('./routes/clippy'));
 
