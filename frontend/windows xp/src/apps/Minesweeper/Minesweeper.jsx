@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './Minesweeper.css';
 
 const BOARD_WIDTH = 10;
@@ -57,12 +58,18 @@ const createBoard = () => {
 };
 
 const Minesweeper = () => {
+    const { api, user } = useAuth();
+
     const [board, setBoard] = useState(null);
     const [gameOver, setGameOver] = useState(false);
     const [gameWon, setGameWon] = useState(false);
     const [minesLeft, setMinesLeft] = useState(MINES_COUNT);
     const [timePassed, setTimePassed] = useState(0);
     const [timerRunning, setTimerRunning] = useState(false);
+
+    // Leaderboard State
+    const [leaderboard, setLeaderboard] = useState([]);
+    const [showLeaderboard, setShowLeaderboard] = useState(false);
 
     const initGame = useCallback(() => {
         setBoard(createBoard());
@@ -173,6 +180,30 @@ const Minesweeper = () => {
                 row.map(cell => cell.isMine ? { ...cell, isFlagged: true } : cell)
             );
             setBoard(finalBoard);
+            handleGameWon(timePassed);
+        }
+    };
+
+    const handleGameWon = async (finalTime) => {
+        if (user) {
+            try {
+                // For Minesweeper, we want to submit the time. A lower time is better.
+                await api.post('/scores', { game_name: 'minesweeper', score: finalTime });
+                fetchLeaderboard();
+            } catch (error) {
+                console.error("Failed to submit score", error);
+            }
+        }
+    };
+
+    const fetchLeaderboard = async () => {
+        if (!user) return;
+        try {
+            const res = await api.get('/scores/minesweeper');
+            setLeaderboard(res.data);
+            setShowLeaderboard(true);
+        } catch (error) {
+            console.error("Failed to fetch leaderboard", error);
         }
     };
 
@@ -187,11 +218,42 @@ const Minesweeper = () => {
     return (
         <div className="minesweeper-app">
             <div className="minesweeper-header">
+                {user && (
+                    <button
+                        onClick={fetchLeaderboard}
+                        style={{ position: 'absolute', top: '-25px', right: '0', fontSize: '0.8rem', padding: '2px 5px' }}
+                    >
+                        Leaderboard
+                    </button>
+                )}
                 <div className="digital-display">{formatNumber(minesLeft)}</div>
                 <button className="face-button" onClick={initGame}>{face}</button>
                 <div className="digital-display">{formatNumber(timePassed)}</div>
             </div>
-            <div className="minesweeper-board">
+
+            <div className="minesweeper-board" style={{ position: 'relative' }}>
+                {showLeaderboard && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 10, display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', color: 'white'
+                    }}>
+                        <h2 style={{ color: 'gold', margin: '0 0 10px 0', fontSize: '1.5rem' }}>Fastest Times</h2>
+                        <div style={{ background: '#222', padding: '5px', borderRadius: '5px', marginBottom: '10px', width: '80%', maxHeight: '150px', overflowY: 'auto' }}>
+                            {leaderboard.length === 0 ? <p style={{ fontSize: '0.9rem', margin: 0 }}>No times yet!</p> : (
+                                <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '1rem', textAlign: 'left' }}>
+                                    {leaderboard.map((entry, idx) => (
+                                        <li key={idx} style={{ marginBottom: '2px' }}>
+                                            <span style={{ color: '#0f0' }}>{entry.username}</span> - {entry.score}s
+                                        </li>
+                                    ))}
+                                </ol>
+                            )}
+                        </div>
+                        <button onClick={() => setShowLeaderboard(false)} style={{ padding: '5px 15px', cursor: 'pointer' }}>Close</button>
+                    </div>
+                )}
+
                 {board.map((row, r) => (
                     <div key={r} className="minesweeper-row">
                         {row.map((cell, c) => {
