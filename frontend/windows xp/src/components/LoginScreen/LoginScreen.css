@@ -1,0 +1,193 @@
+.xp-login-screen {
+  background-color: #5a7edc;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: 'Tahoma', sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+.xp-login-top-bar {
+  height: 80px;
+  background: linear-gradient(to bottom, #00138C 0%, #305EB8 15%, #5985E6 100%);
+  border-bottom: 2px solid #fff;
+}
+
+.xp-login-center-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0 10%;
+}
+
+.xp-login-left-side {
+  flex: 1;
+  text-align: right;
+  padding-right: 40px;
+}
+
+.xp-welcome-text {
+  font-size: 3rem;
+  font-weight: normal;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.xp-welcome-text span {
+  font-weight: bold;
+  font-size: 4rem;
+  color: #ff9900;
+  font-family: "Arial Black", sans-serif;
+}
+
+.xp-welcome-subtext {
+  font-size: 1.2rem;
+  margin-top: 5px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.xp-login-divider {
+  width: 2px;
+  height: 300px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.8), transparent);
+  margin: 0 40px;
+}
+
+.xp-login-right-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.xp-login-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.xp-user-avatar {
+  background: #3c5fb1;
+  border: 2px solid white;
+  border-radius: 5px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.xp-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.xp-auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xp-form-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: normal;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.xp-input {
+  padding: 5px 8px;
+  border: 2px solid #8e9cc3;
+  border-radius: 3px;
+  outline: none;
+  font-family: inherit;
+  width: 200px;
+}
+
+.xp-input:focus {
+  border-color: #3b5fa9;
+}
+
+.xp-auth-actions {
+  display: flex;
+  margin-top: 5px;
+}
+
+.xp-btn-submit {
+  background: linear-gradient(to bottom, #4f9d2f, #316d1c);
+  border: 1px solid #fff;
+  border-radius: 4px;
+  color: white;
+  padding: 3px 15px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: bold;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.xp-btn-submit:hover {
+  background: linear-gradient(to bottom, #5cb836, #3b8221);
+}
+
+.xp-btn-submit:active {
+  background: linear-gradient(to bottom, #316d1c, #4f9d2f);
+  box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.xp-btn-submit:disabled {
+  background: gray;
+  cursor: not-allowed;
+}
+
+.xp-toggle-auth {
+  font-size: 0.8rem;
+  color: #c4d4f3;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 10px;
+}
+
+.xp-toggle-auth:hover {
+  color: white;
+}
+
+.xp-error-msg {
+  color: #ffb3b3;
+  font-size: 0.85rem;
+  margin-top: 2px;
+  max-width: 200px;
+}
+
+.xp-login-bottom-bar {
+  height: 90px;
+  background: linear-gradient(to bottom, #00138C 0%, #305EB8 15%, #5985E6 100%);
+  border-top: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+}
+
+.xp-power-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.xp-power-btn span {
+  font-size: 1.1rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.xp-power-btn img {
+  width: 30px;
+  height: 30px;
+}
