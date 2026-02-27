@@ -101,12 +101,57 @@ const Solitaire = () => {
 
     // Helper to flip the top card of a tableau column if needed
     const flipTopCards = (newTableau) => {
-        newTableau.forEach(col => {
+        return newTableau.map(col => {
             if (col.length > 0 && !col[col.length - 1].isFaceUp) {
-                col[col.length - 1].isFaceUp = true;
+                const newCol = [...col];
+                newCol[newCol.length - 1] = { ...newCol[newCol.length - 1], isFaceUp: true };
+                return newCol;
             }
+            return col;
         });
-        return newTableau;
+    };
+
+    const handleDoubleClick = (source, colIndex, cardIndex, card) => {
+        if (!card.isFaceUp) return;
+
+        let topCard = null;
+        let fromCol = colIndex;
+
+        if (source === 'waste') {
+            if (cardIndex !== waste.length - 1) return;
+            topCard = card;
+        } else if (source === 'tableau') {
+            if (cardIndex !== tableau[colIndex].length - 1) return;
+            topCard = card;
+        } else {
+            return; // foundations or empty shouldn't auto-move
+        }
+
+        for (let i = 0; i < 4; i++) {
+            const foundation = foundations[i];
+            const isValidMove =
+                (foundation.length === 0 && topCard.rank === 1) ||
+                (foundation.length > 0 &&
+                    foundation[foundation.length - 1].suit.symbol === topCard.suit.symbol &&
+                    foundation[foundation.length - 1].rank + 1 === topCard.rank);
+
+            if (isValidMove) {
+                const newFoundations = [...foundations];
+                newFoundations[i] = [...foundation, topCard];
+                setFoundations(newFoundations);
+
+                if (source === 'waste') {
+                    setWaste(waste.slice(0, -1));
+                } else if (source === 'tableau') {
+                    const newTableau = [...tableau];
+                    newTableau[fromCol] = newTableau[fromCol].slice(0, -1);
+                    setTableau(flipTopCards(newTableau));
+                }
+
+                setSelectedCards(null);
+                return;
+            }
+        }
     };
 
     const handleCardClick = (source, colIndex, cardIndex, card) => {
@@ -227,13 +272,14 @@ const Solitaire = () => {
     };
 
     // Render a card
-    const Card = ({ card, source, colIndex, cardIndex, onClick, style = {} }) => {
+    const Card = ({ card, source, colIndex, cardIndex, onClick, onDoubleClick, style = {} }) => {
         if (!card) return <div className="card empty" onClick={onClick} style={style}></div>;
 
         return (
             <div
                 className={`card ${card.isFaceUp ? 'face-up' : 'face-down'} ${card.suit ? card.suit.color : ''} ${isSelected(source, colIndex, cardIndex) ? 'selected' : ''}`}
                 onClick={(e) => { e.stopPropagation(); onClick(source, colIndex, cardIndex, card); }}
+                onDoubleClick={(e) => { e.stopPropagation(); if (onDoubleClick) onDoubleClick(source, colIndex, cardIndex, card); }}
                 style={style}
             >
                 {card.isFaceUp && (
@@ -279,6 +325,7 @@ const Solitaire = () => {
                                     colIndex={0}
                                     cardIndex={waste.length - 1}
                                     onClick={handleCardClick}
+                                    onDoubleClick={handleDoubleClick}
                                 />
                             )}
                         </div>
@@ -313,17 +360,24 @@ const Solitaire = () => {
                             onClick={col.length === 0 ? () => handleCardClick('tableau', colIndex, 0, {}) : undefined}
                         >
                             {col.length === 0 && <div className="card empty tableau-empty"></div>}
-                            {col.map((card, cardIndex) => (
-                                <Card
-                                    key={card.id}
-                                    card={card}
-                                    source="tableau"
-                                    colIndex={colIndex}
-                                    cardIndex={cardIndex}
-                                    onClick={handleCardClick}
-                                    style={{ position: cardIndex === 0 ? 'relative' : 'absolute', top: `${cardIndex * 30}px`, zIndex: cardIndex }}
-                                />
-                            ))}
+                            {col.map((card, cardIndex) => {
+                                const isTop = cardIndex === 0;
+                                const prevFaceUp = cardIndex > 0 ? col[cardIndex - 1].isFaceUp : false;
+                                const marginOffset = isTop ? '0px' : (prevFaceUp ? '-82px' : '-102px');
+
+                                return (
+                                    <Card
+                                        key={card.id}
+                                        card={card}
+                                        source="tableau"
+                                        colIndex={colIndex}
+                                        cardIndex={cardIndex}
+                                        onClick={handleCardClick}
+                                        onDoubleClick={handleDoubleClick}
+                                        style={{ marginTop: marginOffset, zIndex: cardIndex }}
+                                    />
+                                );
+                            })}
                         </div>
                     ))}
                 </div>
