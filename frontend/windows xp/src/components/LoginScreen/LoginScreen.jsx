@@ -5,7 +5,7 @@ import './LoginScreen.css';
 const LoginScreen = () => {
     const { login, register } = useAuth();
     const [isLoginView, setIsLoginView] = useState(true);
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ const LoginScreen = () => {
         setLoading(true);
 
         const action = isLoginView ? login : register;
-        const result = await action(email, password);
+        const result = await action(username, password);
 
         if (!result.success) {
             setError(result.error);
@@ -50,10 +50,10 @@ const LoginScreen = () => {
                             <h2 className="xp-form-title">{isLoginView ? 'Welcome' : 'Create Account'}</h2>
 
                             <input
-                                type="email"
-                                placeholder="Email address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                type="text"
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                                 className="xp-input"
                             />

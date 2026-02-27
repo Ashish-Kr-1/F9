@@ -5,6 +5,7 @@ import FileExplorer from '../apps/FileExplorer/FileExplorer';
 import ControlPanel from '../apps/ControlPanel/ControlPanel';
 import Snake from '../apps/Snake/Snake';
 import Minesweeper from '../apps/Minesweeper/Minesweeper';
+import RecycleBinExplorer from '../apps/RecycleBin/RecycleBinExplorer';
 
 export const DESKTOP_ICONS = [
     {
@@ -30,7 +31,7 @@ export const DESKTOP_ICONS = [
         label: 'Recycle Bin',
         title: 'Recycle Bin',
         src: 'https://win32.run/images/xp/icons/RecycleBinempty.png',
-        component: FileExplorer,
+        component: RecycleBinExplorer,
         defaultSize: { width: 500, height: 380 },
         minSize: { width: 300, height: 200 },
     },

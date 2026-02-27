@@ -70,7 +70,7 @@ const WindowFrame = memo(({ win }) => {
 
             {/* Content */}
             <div className="xp-window-content">
-                <WindowComponent windowId={win.id} />
+                <WindowComponent windowId={win.id} {...(win.componentProps || {})} />
             </div>
 
             {/* Resize Handles */}

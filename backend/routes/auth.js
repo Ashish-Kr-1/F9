@@ -35,6 +35,14 @@ router.post('/register', async (req, res) => {
             [email, username, passwordHash]
         );
 
+        const userId = newUser.rows[0].id;
+
+        // Create root file node for the new user
+        await db.query(
+            "INSERT INTO files (user_id, name, type, parent_id) VALUES ($1, 'C:', 'folder', NULL)",
+            [userId]
+        );
+
         // Generate token
         const token = jwt.sign({ userId: newUser.rows[0].id }, JWT_SECRET, { expiresIn: '7d' });
 
