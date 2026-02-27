@@ -1,0 +1,126 @@
+.snake-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #000;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.snake-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #333;
+  border-bottom: 2px solid #555;
+}
+
+.score {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #0f0;
+}
+
+.controls {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.snake-board-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: #111;
+  overflow: hidden;
+}
+
+.snake-board {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  grid-template-rows: repeat(20, 1fr);
+  width: min(80vw, 80vh, 400px);
+  height: min(80vw, 80vh, 400px);
+  background-color: #222;
+  border: 4px solid #444;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.snake-cell {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.snake-head {
+  background-color: #00ff00;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+.snake-body {
+  background-color: #00cc00;
+  border-radius: 2px;
+}
+
+.snake-food {
+  background-color: #ff0000;
+  border-radius: 50%;
+  box-shadow: 0 0 5px #ff0000;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.game-over-overlay, .paused-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.game-over-overlay h2, .paused-overlay h2 {
+  font-size: 2.5rem;
+  color: #ff3333;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.paused-overlay h2 {
+  color: #ffff00;
+}
+
+.game-over-overlay p {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.game-over-overlay button {
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  font-family: inherit;
+  background-color: #333;
+  color: #0f0;
+  border: 2px solid #0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.game-over-overlay button:hover {
+  background-color: #0f0;
+  color: #000;
+}
