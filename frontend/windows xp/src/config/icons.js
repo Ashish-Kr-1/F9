@@ -5,6 +5,7 @@ import FileExplorer from '../apps/FileExplorer/FileExplorer';
 import ControlPanel from '../apps/ControlPanel/ControlPanel';
 import Snake from '../apps/Snake/Snake';
 import Minesweeper from '../apps/Minesweeper/Minesweeper';
+import Solitaire from '../apps/Solitaire/Solitaire';
 
 export const DESKTOP_ICONS = [
     {
@@ -87,5 +88,14 @@ export const DESKTOP_ICONS = [
         component: Minesweeper,
         defaultSize: { width: 320, height: 450 },
         minSize: { width: 260, height: 350 },
+    },
+    {
+        appId: 'solitaire',
+        label: 'Solitaire',
+        title: 'Solitaire',
+        src: '/icons/solitaire.png',
+        component: Solitaire,
+        defaultSize: { width: 800, height: 600 },
+        minSize: { width: 600, height: 500 },
     },
 ];
