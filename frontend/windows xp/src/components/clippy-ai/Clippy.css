@@ -1,0 +1,116 @@
+.clippy-container {
+    position: fixed;
+    bottom: 80px;
+    right: 40px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.clippy-mascot {
+    width: 80px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.2));
+    animation: clippy-float 3s ease-in-out infinite;
+}
+
+.clippy-mascot:hover {
+    transform: scale(1.1);
+}
+
+@keyframes clippy-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.clippy-bubble {
+    background: #ffffe1;
+    border: 1px solid #000;
+    padding: 12px;
+    width: 260px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    margin-bottom: 20px;
+    position: relative;
+    border-radius: 12px;
+}
+
+/* The Speech Bubble Tail */
+.clippy-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    right: 20px;
+    border-width: 15px 15px 0 0;
+    border-style: solid;
+    border-color: #ffffe1 transparent transparent transparent;
+    z-index: 2;
+}
+
+.clippy-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -17px;
+    right: 19px;
+    border-width: 17px 17px 0 0;
+    border-style: solid;
+    border-color: #000 transparent transparent transparent;
+    z-index: 1;
+}
+
+.clippy-chat-history {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding-right: 5px;
+}
+
+.clippy-chat-history::-webkit-scrollbar {
+    width: 12px;
+}
+
+.clippy-chat-history::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.clippy-chat-history::-webkit-scrollbar-thumb {
+    background: #888;
+    border: 2px solid #f1f1f1;
+}
+
+.clippy-input-group {
+    display: flex;
+    gap: 5px;
+}
+
+.clippy-input {
+    flex: 1;
+    padding: 3px 5px;
+    border: 1px solid #7f9db9;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+}
+
+.clippy-button {
+    padding: 2px 10px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    background: #ece9d8;
+    border: 1px solid #003c74;
+    cursor: pointer;
+}
+
+.clippy-button:hover {
+    background: #f1eee0;
+}
