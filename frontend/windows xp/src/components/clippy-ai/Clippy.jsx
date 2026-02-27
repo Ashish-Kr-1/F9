@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useAuth } from "../../context/AuthContext";
 import "./Clippy.css";
 
 export default function Clippy() {
+    const { api, user } = useAuth();
     const [open, setOpen] = useState(false);
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState([]);
@@ -17,18 +18,22 @@ export default function Clippy() {
         scrollToBottom();
     }, [chat, isThinking]);
 
-    const sendMessage = async () => {
-        if (!message || isThinking) return;
+    const sendMessage = useCallback(async (userMessage = message, isContextOnly = false) => {
+        if (!userMessage && !isContextOnly) return;
+        if (isThinking) return;
 
-        const userMessage = message;
-        setChat(prev => [...prev, { role: "user", text: userMessage }]);
-        setMessage("");
+        if (!isContextOnly) {
+            setChat(prev => [...prev, { role: "user", text: userMessage }]);
+            setMessage("");
+        }
         setIsThinking(true);
 
         try {
-            const response = await axios.post("http://localhost:8000/api/clippy", {
-                message: userMessage
-            });
+            const payload = isContextOnly
+                ? { message: "", context: userMessage }
+                : { message: userMessage };
+
+            const response = await api.post("/clippy", payload);
 
             setChat(prev => [
                 ...prev,
@@ -42,7 +47,26 @@ export default function Clippy() {
         } finally {
             setIsThinking(false);
         }
-    };
+    }, [message, isThinking]);
+
+    // Listen for contextual OS events (e.g., User opens Notepad)
+    useEffect(() => {
+        const handleContextEvent = async (e) => {
+            const action = e.detail?.action;
+            if (!action) return;
+
+            // Pop open clippy and send proactive context message
+            setOpen(true);
+            await sendMessage(action, true);
+        };
+
+        window.addEventListener('clippyContext', handleContextEvent);
+        return () => window.removeEventListener('clippyContext', handleContextEvent);
+    }, [sendMessage]);
+
+
+    // Only render Clippy if user is logged in
+    if (!user) return null;
 
     return (
         <div className="clippy-container">
@@ -79,10 +103,10 @@ export default function Clippy() {
                             className="clippy-input"
                             value={message}
                             onChange={e => setMessage(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && sendMessage()}
+                            onKeyDown={e => e.key === "Enter" && sendMessage(message, false)}
                             placeholder="Type here..."
                         />
-                        <button className="clippy-button" onClick={sendMessage} disabled={isThinking}>
+                        <button className="clippy-button" onClick={() => sendMessage(message, false)} disabled={isThinking}>
                             Send
                         </button>
                     </div>

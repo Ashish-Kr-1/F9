@@ -113,11 +113,17 @@ export function WindowProvider({ children }) {
 
     const openWindow = useCallback((config) => {
         dispatch({ type: 'OPEN_WINDOW', payload: config });
+        // Let Clippy know
+        window.dispatchEvent(new CustomEvent('clippyContext', { detail: { action: `User opened ${config.title || 'an application'}` } }));
     }, []);
 
     const closeWindow = useCallback((id) => {
+        const win = state.windows.find(w => w.id === id);
+        if (win) {
+            window.dispatchEvent(new CustomEvent('clippyContext', { detail: { action: `User closed ${win.title || 'an application'}` } }));
+        }
         dispatch({ type: 'CLOSE_WINDOW', id });
-    }, []);
+    }, [state.windows]);
 
     const minimizeWindow = useCallback((id) => {
         dispatch({ type: 'MINIMIZE_WINDOW', id });

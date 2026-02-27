@@ -7,7 +7,22 @@ import uuid
 import re
 import json
 import asyncio
+import os
 from datetime import datetime
+
+# Load .env locally without needing python-dotenv
+env_path = os.path.join(os.path.dirname(__file__), '../../.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                try:
+                    k, v = line.split('=', 1)
+                    if k.strip() == "GEMINI_API_KEY":
+                        os.environ[k.strip()] = v.strip()
+                except:
+                    pass
 
 # =====================================================
 # BASIC CONFIG
@@ -23,8 +38,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "gemma3:1b"
+# OLLAMA_URL = "http://localhost:11434/api/generate"
+# MODEL_NAME = "gemma3:1b"
+
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
 
 TEMPERATURE = 0.7
 TOP_P = 0.9
@@ -67,7 +86,8 @@ BANNED_PATTERNS = [
 # =====================================================
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str | None = ""
+    context: str | None = None
     session_id: str | None = None
     stream: bool = False
 
@@ -129,7 +149,7 @@ def sanitize_output(output):
 
     # Remove direct "Clippy:" if it already exists, then re-add to ensure consistence
     output = re.sub(r'^Clippy:\s*', '', output)
-    output = "Clippy: " + output
+    output = "Hmmm..." + output
 
     # Limit response length only if extremely long to prevent model hallucinations
     if len(output) > 800:
@@ -153,20 +173,23 @@ Personality:
 
 Rules:
 - Start every reply with "Clippy: ".
-- Be detailed and helpful. If the user asks for an explanation, give a full one.
+- If the user provides a direct message, be detailed and helpful.
+- IF you see an [OS Event Context] like "User opened Notepad", act like you just popped up. Give a very short, helpful 1-2 sentence proactive suggestion. Example: "Looks like you're writing a note! Press Ctrl+S to save your file."
 - Keep the Windows XP vibe alive (mention folders, start menu, desktop).
-- Never mention being an AI model, llama, or backend code.
+- Never mention being an AI model, llama, Gemini, backend code, or an LLM. Talk like you are literally the Windows XP paperclip.
 - Your goal is to be the most helpful assistant the user has ever had.
 """
 
-def build_prompt(history):
+def build_prompt(history, context=None):
     convo = ""
     for msg in history:
         role = "User" if msg["role"] == "user" else "Clippy"
         convo += f"{role}: {msg['content']}\n"
 
-    return f"""{SYSTEM_PROMPT}
+    context_block = f"\nOS Event Context: {context}\n" if context else ""
 
+    return f"""{SYSTEM_PROMPT}
+{context_block}
 Conversation:
 {convo}
 
@@ -237,28 +260,30 @@ async def chat(request: ChatRequest):
 
     # LLM FLOW
     history = get_history(session_id)
-    history.append({"role": "user", "content": message})
+    if message:
+        history.append({"role": "user", "content": message})
+    elif request.context:
+        history.append({"role": "user", "content": f"[System Event] {request.context}"})
 
-    prompt = build_prompt(history)
+    prompt = build_prompt(history, request.context)
 
     try:
         payload = {
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
                 "temperature": TEMPERATURE,
-                "top_p": TOP_P
+                "topP": TOP_P
             }
         }
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(OLLAMA_URL, json=payload)
+            response = await client.post(GEMINI_URL, json=payload)
+            response.raise_for_status()
             data = response.json()
-            raw_reply = data.get("response", "")
+            raw_reply = data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
-        print(f"Ollama Error: {e}")
-        raw_reply = "I seem to be having trouble connecting to my brain! Is Ollama running?"
+        print(f"Gemini API Error: {e}")
+        raw_reply = "I seem to be having trouble connecting to my brain! Have you set the GEMINI_API_KEY in the .env file?"
 
     final_reply = sanitize_output(raw_reply)
 
@@ -288,18 +313,17 @@ async def stream_chat(request: ChatRequest):
     prompt = build_prompt(history)
 
     payload = {
-        "model": MODEL_NAME,
-        "prompt": prompt,
-        "stream": True,
-        "options": {
-            "temperature": TEMPERATURE,
-            "top_p": TOP_P
-        }
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": TEMPERATURE,
+                "topP": TOP_P
+            }
     }
 
     async def event_generator():
         async with httpx.AsyncClient() as client:
-            async with client.stream("POST", OLLAMA_URL, json=payload) as response:
+            stream_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key={GEMINI_API_KEY}"
+            async with client.stream("POST", stream_url, json=payload) as response:
                 async for chunk in response.aiter_text():
                     yield chunk
 
