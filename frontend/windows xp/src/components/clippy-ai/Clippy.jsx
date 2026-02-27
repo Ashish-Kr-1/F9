@@ -4,7 +4,6 @@ import "./Clippy.css";
 
 export default function Clippy() {
     const [open, setOpen] = useState(false);
-    const [visible, setVisible] = useState(true);
     const [message, setMessage] = useState("");
     const [chat, setChat] = useState([]);
     const [isThinking, setIsThinking] = useState(false);
@@ -27,7 +26,7 @@ export default function Clippy() {
         setIsThinking(true);
 
         try {
-            const response = await axios.post("http://localhost:8000/clippy", {
+            const response = await axios.post("http://localhost:8000/api/clippy", {
                 message: userMessage
             });
 
@@ -44,8 +43,6 @@ export default function Clippy() {
             setIsThinking(false);
         }
     };
-
-    if (!visible) return null;
 
     return (
         <div className="clippy-container">
@@ -87,11 +84,6 @@ export default function Clippy() {
                         />
                         <button className="clippy-button" onClick={sendMessage} disabled={isThinking}>
                             Send
-                        </button>
-                    </div>
-                    <div className="clippy-actions">
-                        <button className="clippy-shutdown-btn" onClick={() => setVisible(false)}>
-                            Shut down Clippy
                         </button>
                     </div>
                 </div>
