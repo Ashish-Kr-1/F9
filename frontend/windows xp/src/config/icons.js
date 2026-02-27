@@ -3,6 +3,7 @@ import Paint from '../apps/Paint/Paint';
 import Calculator from '../apps/Calculator/Calculator';
 import FileExplorer from '../apps/FileExplorer/FileExplorer';
 import ControlPanel from '../apps/ControlPanel/ControlPanel';
+import Snake from '../apps/Snake/Snake';
 
 export const DESKTOP_ICONS = [
     {
@@ -67,5 +68,14 @@ export const DESKTOP_ICONS = [
         component: ControlPanel,
         defaultSize: { width: 600, height: 460 },
         minSize: { width: 400, height: 320 },
+    },
+    {
+        appId: 'snake',
+        label: 'Snake',
+        title: 'Snake Game',
+        src: '/icons/snake.png',
+        component: Snake,
+        defaultSize: { width: 500, height: 500 },
+        minSize: { width: 400, height: 400 },
     },
 ];
