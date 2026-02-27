@@ -1,0 +1,169 @@
+.xp-window-frame {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--xp-border-outer);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    box-shadow: var(--xp-shadow);
+    user-select: none;
+    font-family: 'Tahoma', 'Segoe UI', sans-serif;
+}
+
+/* ── Title Bar ──────────────────────────────────── */
+.xp-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 30px;
+    padding: 0 4px 0 6px;
+    background: var(--xp-titlebar-gradient);
+    border-radius: 7px 7px 0 0;
+    cursor: default;
+    flex-shrink: 0;
+}
+
+.xp-title-bar.inactive {
+    background: var(--xp-titlebar-inactive);
+}
+
+.xp-title-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    overflow: hidden;
+    flex: 1;
+}
+
+.xp-title-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.xp-title-text {
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xp-title-bar.inactive .xp-title-text {
+    color: #d0d0d0;
+    text-shadow: none;
+}
+
+/* ── Title Bar Buttons ──────────────────────────── */
+.xp-title-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.xp-btn {
+    width: 21px;
+    height: 21px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+    transition: filter 0.05s;
+    position: relative;
+    overflow: hidden;
+}
+
+.xp-btn-minimize,
+.xp-btn-maximize {
+    background: linear-gradient(180deg, #d8e8f8 0%, #a0c0e0 40%, #6090c0 100%);
+    color: #000;
+}
+
+.xp-btn-close {
+    background: linear-gradient(180deg, #f88 0%, #e44 40%, #c00 100%);
+    color: #fff;
+}
+
+.xp-btn:hover {
+    filter: brightness(1.15);
+}
+
+.xp-btn:active {
+    filter: brightness(0.85);
+    transform: translateY(1px);
+}
+
+.xp-btn-icon {
+    pointer-events: none;
+    line-height: 1;
+    font-size: 9px;
+}
+
+/* ── Window Content ────────────────────────────── */
+.xp-window-content {
+    flex: 1;
+    overflow: auto;
+    background: var(--xp-window-bg);
+    position: relative;
+}
+
+/* ── Resize Handles ────────────────────────────── */
+.resize-handle {
+    position: absolute;
+    z-index: 10;
+}
+
+.resize-right {
+    right: 0;
+    top: 4px;
+    width: 5px;
+    height: calc(100% - 8px);
+    cursor: ew-resize;
+}
+
+.resize-bottom {
+    bottom: 0;
+    left: 4px;
+    width: calc(100% - 8px);
+    height: 5px;
+    cursor: ns-resize;
+}
+
+.resize-left {
+    left: 0;
+    top: 4px;
+    width: 5px;
+    height: calc(100% - 8px);
+    cursor: ew-resize;
+}
+
+.resize-br {
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nwse-resize;
+}
+
+.resize-bl {
+    bottom: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nesw-resize;
+}
+
+/* ── Focus / Inactive shadow ────────────────────── */
+.xp-window-frame.focused {
+    box-shadow: var(--xp-shadow);
+}
+
+.xp-window-frame.inactive {
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+}

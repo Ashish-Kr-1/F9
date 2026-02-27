@@ -1,0 +1,92 @@
+.notepad {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #fff;
+    font-family: 'Lucida Console', 'Courier New', monospace;
+}
+
+.notepad-menubar {
+    display: flex;
+    background: #f0ede8;
+    border-bottom: 1px solid #ccc;
+    padding: 0 2px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+}
+
+.notepad-menu-item {
+    padding: 2px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.notepad-menu-item:hover {
+    background: var(--xp-highlight);
+    color: #fff;
+}
+
+.notepad-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    background: #f0ede8;
+    border-bottom: 1px solid #ccc;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+}
+
+.np-tool-btn {
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: 'Tahoma', sans-serif;
+    cursor: pointer;
+    border: 1px solid #999;
+    background: #e4e4e4;
+    border-radius: 2px;
+}
+
+.np-tool-btn:hover {
+    background: #d0d0d0;
+}
+
+.np-separator {
+    width: 1px;
+    height: 16px;
+    background: #aaa;
+    margin: 0 4px;
+}
+
+.np-wrap-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 11px;
+    font-family: 'Tahoma', sans-serif;
+}
+
+.notepad-textarea {
+    flex: 1;
+    border: none;
+    resize: none;
+    padding: 4px 6px;
+    font-family: 'Lucida Console', 'Courier New', monospace;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    word-break: break-word;
+}
+
+.notepad-statusbar {
+    display: flex;
+    gap: 16px;
+    padding: 2px 8px;
+    background: #f0ede8;
+    border-top: 1px solid #ccc;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 10px;
+    color: #555;
+}

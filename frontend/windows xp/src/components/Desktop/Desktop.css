@@ -1,0 +1,65 @@
+.desktop-root {
+    position: fixed;
+    inset: 0 0 40px 0;
+    /* leaves room for taskbar */
+    overflow: hidden;
+    background: var(--xp-wallpaper);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ── Icon Grid ─────────────────────────────────── */
+.desktop-icons-grid {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 8px;
+    padding: 12px 8px;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* ── Single Icon ───────────────────────────────── */
+.desktop-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 72px;
+    gap: 4px;
+    cursor: pointer;
+    pointer-events: all;
+    border-radius: 2px;
+    padding: 4px 2px;
+    user-select: none;
+}
+
+.desktop-icon:hover {
+    background: rgba(49, 106, 197, 0.4);
+}
+
+.desktop-icon-img-wrap {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.desktop-icon-img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+}
+
+.desktop-icon-label {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    color: #fff;
+    text-shadow: 1px 1px 2px #000, -1px -1px 2px #000;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+    max-width: 72px;
+}

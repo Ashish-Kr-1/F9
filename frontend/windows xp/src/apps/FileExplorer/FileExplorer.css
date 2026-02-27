@@ -1,0 +1,238 @@
+.explorer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #fff;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+}
+
+/* Toolbar */
+.explorer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 4px;
+    background: #ece9d8;
+    border-bottom: 1px solid #aaa;
+}
+
+.exp-btn {
+    padding: 2px 8px;
+    font-size: 11px;
+    font-family: 'Tahoma', sans-serif;
+    background: #ece9d8;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.exp-btn:hover {
+    border-color: #aaa;
+    background: #e0ddd0;
+}
+
+.exp-btn.active {
+    border-color: #888;
+    background: #d4d0c4;
+}
+
+.exp-sep {
+    width: 1px;
+    height: 18px;
+    background: #aaa;
+    margin: 0 4px;
+}
+
+.exp-view-group {
+    display: flex;
+    gap: 1px;
+}
+
+/* Address */
+.explorer-address {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    background: #ece9d8;
+    border-bottom: 1px solid #aaa;
+}
+
+.exp-addr-label {
+    font-size: 11px;
+    color: #333;
+}
+
+.exp-addr-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #808080;
+    padding: 2px 4px;
+    gap: 4px;
+}
+
+.exp-addr-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+}
+
+.exp-go-btn {
+    padding: 2px 8px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 11px;
+    background: #ece9d8;
+    border: 1px solid #aaa;
+    cursor: pointer;
+}
+
+/* Body */
+.explorer-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.explorer-sidebar {
+    width: 180px;
+    background: #ece9d8;
+    border-right: 1px solid #aaa;
+    overflow-y: auto;
+    flex-shrink: 0;
+    padding: 4px 0;
+}
+
+.sidebar-section-label {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #666;
+    padding: 4px 10px;
+    letter-spacing: 0.5px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.sidebar-item:hover {
+    background: rgba(0, 0, 200, 0.08);
+}
+
+.sidebar-item.active {
+    background: var(--xp-highlight);
+    color: #fff;
+}
+
+.sidebar-icon {
+    font-size: 16px;
+}
+
+/* Files */
+.explorer-files {
+    flex: 1;
+    overflow: auto;
+    background: #fff;
+    padding: 4px;
+}
+
+.exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.exp-table th {
+    background: #ece9d8;
+    border: 1px solid #aaa;
+    padding: 3px 8px;
+    text-align: left;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+}
+
+.exp-row:hover {
+    background: #cce8ff;
+}
+
+.exp-table td {
+    border-bottom: 1px solid #f0ede8;
+    padding: 3px 8px;
+}
+
+.exp-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.exp-file-icon {
+    font-size: 16px;
+}
+
+.exp-empty {
+    color: #888;
+    padding: 12px 16px;
+    font-style: italic;
+}
+
+.exp-icons-grid,
+.exp-list-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+}
+
+.exp-list-grid {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.exp-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 72px;
+    gap: 3px;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.exp-icon-item:hover {
+    background: #cce8ff;
+}
+
+.exp-icon-big {
+    font-size: 28px;
+}
+
+.exp-icon-label {
+    font-size: 10px;
+    text-align: center;
+    word-break: break-word;
+}
+
+/* Status */
+.explorer-statusbar {
+    padding: 2px 8px;
+    background: #ece9d8;
+    border-top: 1px solid #aaa;
+    font-size: 11px;
+    color: #555;
+}
