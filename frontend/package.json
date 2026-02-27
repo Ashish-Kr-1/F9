@@ -1,0 +1,13 @@
+{
+  "name": "windows-xp-clone-frontend",
+  "version": "1.0.0",
+  "description": "Frontend UI team repository for XP clone",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo \"Frontend start script to be implemented by UI team\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "UI Team",
+  "license": "ISC"
+}

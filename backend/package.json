@@ -1,0 +1,14 @@
+{
+    "name": "windows-xp-clone-backend",
+    "version": "1.0.0",
+    "description": "Backend API, Storage, and Auth team repository for XP clone",
+    "main": "index.js",
+    "scripts": {
+        "start": "echo \"Backend start script to be implemented by Backend/DB team\"",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {},
+    "keywords": [],
+    "author": "Backend \& DB Team",
+    "license": "ISC"
+}
