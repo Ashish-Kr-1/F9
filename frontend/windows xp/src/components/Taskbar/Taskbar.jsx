@@ -66,13 +66,12 @@ const Taskbar = () => {
 
     return (
         <>
-            {startOpen && (
-                <StartMenu onClose={() => setStartOpen(false)} />
-            )}
-
             <div className="taskbar" id="taskbar">
-                {/* Start Button */}
-                <div ref={startRef} style={{ display: 'flex', height: '100%' }}>
+                {/* Start Button + Menu Container */}
+                <div ref={startRef} style={{ display: 'flex', height: '100%', position: 'relative' }}>
+                    {startOpen && (
+                        <StartMenu onClose={() => setStartOpen(false)} />
+                    )}
                     <button
                         className={`start-btn ${startOpen ? 'active' : ''}`}
                         onClick={() => setStartOpen(v => !v)}

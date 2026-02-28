@@ -55,8 +55,8 @@ router.get('/root', verifyToken, async (req, res) => {
 router.get('/:nodeId/children', verifyToken, async (req, res) => {
     try {
         const result = await db.query(
-            "SELECT * FROM vfs_nodes WHERE parent_id=$1 AND is_deleted=false ORDER BY node_type DESC, name",
-            [req.params.nodeId]
+            "SELECT * FROM vfs_nodes WHERE parent_id=$1 AND user_id=$2 AND is_deleted=false ORDER BY node_type DESC, name",
+            [req.params.nodeId, req.userId]
         );
         const children = result.rows.map(node => ({
             id: node.id,
