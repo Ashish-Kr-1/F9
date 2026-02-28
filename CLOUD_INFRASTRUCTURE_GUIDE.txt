@@ -1,0 +1,340 @@
+================================================================================
+  WINDOWS XP WEB OS CLONE — CLOUD INFRASTRUCTURE GUIDE
+  How Google Cloud Run, Cloud SQL, and GCS Power This Project
+================================================================================
+
+
+TABLE OF CONTENTS
+-----------------
+1. Architecture Overview
+2. Google Cloud Run — Backend Hosting
+3. Google Cloud SQL — Database
+4. Google Cloud Storage (GCS) — File Storage
+5. How They Work Together (Request Flow)
+6. Frontend Hosting Options (GCP)
+7. Frontend Hosting Options (Non-GCP)
+
+
+================================================================================
+1. ARCHITECTURE OVERVIEW
+================================================================================
+
+The Windows XP Web OS Clone uses three Google Cloud services:
+
+    ┌─────────────────┐
+    │   User Browser   │
+    │  (React Frontend)│
+    └───────┬─────────┘
+            │ HTTPS
+            ▼
+    ┌─────────────────┐
+    │  Google Cloud    │
+    │     Run          │  ← Node.js / Express API server
+    │  (xp-backend)   │
+    └───┬─────────┬───┘
+        │         │
+        ▼         ▼
+  ┌──────────┐ ┌──────────────┐
+  │ Cloud SQL│ │ Cloud Storage│
+  │(Postgres)│ │   (GCS)      │
+  │ xpwebos  │ │ xp-web-os-   │
+  │          │ │ storage      │
+  └──────────┘ └──────────────┘
+
+
+================================================================================
+2. GOOGLE CLOUD RUN — BACKEND HOSTING
+================================================================================
+
+WHAT IT IS:
+  Cloud Run is a fully managed serverless platform that runs containerized
+  applications. It automatically scales from zero to handle traffic, and
+  you only pay for the time your code is actually processing requests.
+
+HOW WE USE IT:
+  Our Node.js + Express backend is packaged into a Docker container and
+  deployed to Cloud Run as a service called "xp-backend".
+
+  Service URL: https://xp-backend-ybj2iq4xca-el.a.run.app
+
+CONFIGURATION:
+  - Region:          asia-south1 (Mumbai)
+  - Min instances:   0 (scales to zero when idle — saves cost)
+  - Max instances:   3 (handles traffic spikes)
+  - Memory:          512 MB per instance
+  - CPU:             1 vCPU per instance
+  - Port:            8080 (Cloud Run injects PORT env var automatically)
+  - Auth:            Unauthenticated access allowed (our own JWT handles auth)
+
+WHAT CLOUD RUN DOES FOR US:
+  1. Auto-scaling: Spins up new container instances when traffic increases,
+     scales back to zero when there's no traffic.
+  2. HTTPS: Provides free SSL/TLS certificates automatically.
+  3. Zero DevOps: No server maintenance, OS updates, or infrastructure to manage.
+  4. Pay-per-use: Billed only for actual request processing time.
+  5. Container isolation: Each request is handled in an isolated container.
+
+HOW THE DOCKER CONTAINER WORKS:
+  - Base image: node:20-alpine (lightweight Linux + Node.js 20 LTS)
+  - Build tools (python3, make, g++) are temporarily installed for bcrypt
+    native compilation, then removed to keep the image small.
+  - Only production npm dependencies are installed (devDependencies skipped).
+  - The container runs "node server.js" on startup.
+
+STARTUP SEQUENCE:
+  When a Cloud Run instance starts, our server.js does:
+    1. Loads environment variables (DATABASE_URL, GCS_BUCKET_NAME, JWT_SECRET)
+    2. Verifies database connectivity (runs SELECT version())
+    3. Verifies GCS connectivity (writes, reads, and deletes a test file)
+    4. Starts Express HTTP server on 0.0.0.0:8080
+    5. Logs status of each check
+
+ENVIRONMENT VARIABLES SET IN CLOUD RUN:
+  DATABASE_URL    → Cloud SQL connection string (with password URL-encoded)
+  GCS_BUCKET_NAME → "xp-web-os-storage"
+  JWT_SECRET      → Secret key for signing JWT tokens
+  NODE_ENV        → "production"
+  PORT            → 8080 (auto-injected by Cloud Run, not set manually)
+
+
+================================================================================
+3. GOOGLE CLOUD SQL — DATABASE
+================================================================================
+
+WHAT IT IS:
+  Cloud SQL is a fully managed relational database service. We use
+  PostgreSQL 15 hosted on Cloud SQL instead of managing our own
+  database server. Previously, we used Supabase-hosted PostgreSQL.
+
+WHY WE MIGRATED FROM SUPABASE:
+  - Full control over the database instance configuration
+  - Tighter integration with other GCP services (Cloud Run, IAM)
+  - No third-party dependency for a core hackathon component
+  - Better network latency (same GCP region as Cloud Run)
+
+HOW WE USE IT:
+  Instance IP:    34.93.116.4
+  Database name:  xpwebos
+  User:           xp_admin
+  Region:         asia-south1 (same as Cloud Run for low latency)
+
+CONNECTION FROM BACKEND:
+  The Node.js backend uses the 'pg' library with a connection pool:
+    - Pool max connections: 5 (prevents Cloud Run scaling overload)
+    - Connection timeout:   10 seconds
+    - Idle timeout:         30 seconds
+    - SSL enabled:          Yes (rejectUnauthorized: false for Cloud SQL)
+
+  Code (backend/db.js):
+    const poolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+        max: 5,
+        connectionTimeoutMillis: 10000,
+        idleTimeoutMillis: 30000,
+    };
+
+DATABASE SCHEMA (key tables):
+  - users:           User accounts (email, password hash, storage quota)
+  - vfs_nodes:       Virtual File System (folders, files, shortcuts)
+  - file_versions:   Version history for file content (links to GCS)
+  - file_metadata:   GCS object metadata (mime type, size, hash)
+  - game_scores:     Game high scores (Snake, etc.)
+  - clippy_history:  Clippy AI chat logs
+  - sessions:        User session tracking
+  - window_layout:   Desktop window positions and states
+
+MULTI-TENANCY:
+  Every database query includes a user_id filter to ensure strict
+  data isolation between users. No user can ever see another user's
+  files, scores, or settings.
+
+DATA MIGRATION:
+  We migrated data from Supabase to Cloud SQL using:
+    1. pg_dump --data-only from Supabase (exported users, vfs_nodes, etc.)
+    2. psql -f to Cloud SQL with the idempotent schema script
+    3. Verified row counts match: 12 users, 22 vfs_nodes, 10 game_scores
+
+
+================================================================================
+4. GOOGLE CLOUD STORAGE (GCS) — FILE STORAGE
+================================================================================
+
+WHAT IT IS:
+  GCS is an object storage service for storing files (like AWS S3).
+  We use it to store the actual content of text files created in Notepad.
+
+HOW WE USE IT:
+  Bucket name:  xp-web-os-storage
+
+  When a user saves a file in the Windows XP Notepad app:
+    1. Frontend sends POST /api/files/:nodeId/content with { text: "..." }
+    2. Backend uploads text content to GCS
+    3. Backend records the storage_key in the file_versions table
+    4. Backend updates vfs_nodes with the latest storage_key and size
+
+  Storage key format: user_{userId}/file_{nodeId}.txt
+  Example: user_e9b11c04-7dbf-4689-b2f5-ccc54e466742/file_abc123.txt
+
+  This format provides natural per-user isolation in the bucket.
+
+AUTHENTICATION:
+  - On Cloud Run: Uses Application Default Credentials (IAM).
+    The Cloud Run service account has the "Storage Object Admin" role.
+  - No service account JSON key files are used (security best practice).
+
+OPERATIONS SUPPORTED (backend/storage.js):
+  - uploadFile(userId, nodeId, content)  → Saves text to GCS
+  - downloadFile(storageKey)             → Reads text from GCS
+  - deleteFile(storageKey)               → Removes file from GCS
+  - verify()                             → Health check (write/read/delete test)
+
+
+================================================================================
+5. HOW THEY WORK TOGETHER — COMPLETE REQUEST FLOW
+================================================================================
+
+Example: User saves "Hello World" in Notepad
+
+  1. User clicks "Save" in the Notepad app (React frontend)
+  2. Frontend sends:
+     POST https://xp-backend-ybj2iq4xca-el.a.run.app/api/files/abc123/content
+     Headers: { Authorization: "Bearer <JWT>" }
+     Body: { text: "Hello World" }
+
+  3. Cloud Run receives the request → routes to Express.js
+
+  4. Express middleware verifyToken() checks JWT → extracts userId
+
+  5. Backend queries Cloud SQL:
+     SELECT id FROM vfs_nodes WHERE id='abc123' AND user_id='<userId>'
+     (verifies the user owns this file)
+
+  6. Backend uploads to GCS:
+     Bucket: xp-web-os-storage
+     Key:    user_<userId>/file_abc123.txt
+     Content: "Hello World"
+
+  7. Backend records version in Cloud SQL:
+     INSERT INTO file_versions (file_id, version_number, storage_key, size_bytes)
+     VALUES ('abc123', 1, 'user_<userId>/file_abc123.txt', 11)
+
+  8. Backend updates vfs_nodes in Cloud SQL:
+     UPDATE vfs_nodes SET storage_key='...', size_bytes=11 WHERE id='abc123'
+
+  9. Backend responds: { message: "Content saved", size: 11, version: 1 }
+
+  10. Frontend shows success notification.
+
+
+================================================================================
+6. FRONTEND HOSTING OPTIONS — GCP
+================================================================================
+
+OPTION A: Firebase Hosting (RECOMMENDED for this project)
+  - Best for: Static sites and SPAs (React, Vue, Angular)
+  - Free tier: 10 GB storage, 360 MB/day transfer
+  - Setup:
+      npm run build
+      npm install -g firebase-tools
+      firebase login
+      firebase init hosting  (select "windows-xp-clone" project)
+      firebase deploy
+  - Pros: Free SSL, CDN, instant rollbacks, preview URLs
+  - Cons: Static only (no SSR)
+  - URL: https://windows-xp-clone.web.app
+
+OPTION B: Cloud Storage + Cloud CDN
+  - Best for: Simple static hosting with global CDN
+  - Setup:
+      npm run build
+      gsutil -m cp -r dist/* gs://your-frontend-bucket/
+      (configure load balancer + CDN)
+  - Pros: Very cheap at scale, global CDN
+  - Cons: More setup than Firebase, no built-in CI/CD
+
+OPTION C: Cloud Run (containerized frontend)
+  - Best for: If you need SSR (Next.js) or custom server logic
+  - Setup: Dockerize the frontend with nginx, deploy like the backend
+  - Pros: Full control, same deployment pipeline as backend
+  - Cons: Overkill for a static React app, costs more than static hosting
+
+OPTION D: App Engine (Standard)
+  - Best for: Full-stack apps with minimal config
+  - Setup: Add app.yaml, run gcloud app deploy
+  - Pros: Easy, auto-scaling, free tier available
+  - Cons: Cold starts, less flexible than Cloud Run
+
+
+================================================================================
+7. FRONTEND HOSTING OPTIONS — NON-GCP
+================================================================================
+
+OPTION E: Vercel (RECOMMENDED for React/Vite projects)
+  - Best for: React, Next.js, Vite projects
+  - Free tier: Generous (100 GB bandwidth/month)
+  - Setup:
+      1. Connect your GitHub repo to vercel.com
+      2. Set build command: npm run build
+      3. Set output directory: dist
+      4. Add env var: VITE_API_URL=https://xp-backend-ybj2iq4xca-el.a.run.app/api
+      5. Deploy automatically on every git push
+  - Pros: Instant deploys, preview URLs per PR, free SSL, global CDN
+  - Cons: Vendor lock-in for advanced features
+
+OPTION F: Netlify
+  - Best for: Static sites and JAMstack
+  - Free tier: 100 GB bandwidth/month, 300 build minutes
+  - Setup:
+      1. Connect GitHub repo to netlify.com
+      2. Build command: npm run build
+      3. Publish directory: dist
+      4. Add env var: VITE_API_URL=...
+  - Pros: Instant rollbacks, form handling, edge functions
+  - Cons: Build minutes limited on free tier
+
+OPTION G: GitHub Pages
+  - Best for: Simple static sites (no SPA routing support out of the box)
+  - Free tier: Unlimited for public repos
+  - Setup:
+      npm run build
+      npx gh-pages -d dist
+  - Pros: Completely free, integrated with GitHub
+  - Cons: No SPA routing without workarounds, no env vars at build time
+
+OPTION H: Cloudflare Pages
+  - Best for: Performance-critical static sites
+  - Free tier: Unlimited bandwidth, 500 builds/month
+  - Setup: Connect GitHub repo, set build command and output dir
+  - Pros: Fastest global CDN, free unlimited bandwidth, Workers for edge logic
+  - Cons: Newer platform, smaller ecosystem
+
+OPTION I: Render
+  - Best for: Full-stack (can host both frontend and backend)
+  - Free tier: Static sites are free
+  - Setup: Connect GitHub, auto-detects Vite/React
+  - Pros: Simple, supports static + dynamic hosting
+  - Cons: Free tier has cold starts for dynamic services
+
+OPTION J: Railway
+  - Best for: Full-stack quick deployments
+  - Free tier: $5/month credit
+  - Setup: Connect GitHub, auto-deploy
+  - Pros: Very simple setup, supports both frontend and backend
+  - Cons: Limited free tier
+
+
+================================================================================
+  SUMMARY — RECOMMENDED SETUP FOR THIS PROJECT
+================================================================================
+
+  BACKEND:    Google Cloud Run     (already deployed and working ✅)
+  DATABASE:   Google Cloud SQL     (PostgreSQL 15, already migrated ✅)
+  STORAGE:    Google Cloud Storage (xp-web-os-storage bucket ✅)
+  FRONTEND:   Firebase Hosting     (GCP, free, instant deploy)
+         OR:  Vercel               (non-GCP, free, GitHub integration)
+
+  Both Firebase and Vercel can deploy your React frontend in under 5 minutes
+  and provide free SSL, CDN, and automatic deployments from GitHub.
+
+================================================================================

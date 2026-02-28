@@ -112,28 +112,41 @@ function buildPositions(icons, startIndex = 0) {
 const Desktop = () => {
     const { windows, openWindow } = useWindowManager();
     const { api, user } = useAuth();
-    const [desktopFiles, setDesktopFiles] = useState([]); // VFS files from Desktop folder
+    const [desktopFiles, setDesktopFiles] = useState([]);
     const [iconPositions, setIconPositions] = useState(() => buildPositions(DESKTOP_ICONS));
+    const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+    // 🥚 Konami Code Easter Egg: ↑↑↓↓←→←→BA
+    useEffect(() => {
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIdx = 0;
+        const handleKonami = (e) => {
+            if (e.key === konamiCode[konamiIdx]) {
+                konamiIdx++;
+                if (konamiIdx === konamiCode.length) {
+                    setShowEasterEgg(true);
+                    konamiIdx = 0;
+                }
+            } else {
+                konamiIdx = 0;
+            }
+        };
+        window.addEventListener('keydown', handleKonami);
+        return () => window.removeEventListener('keydown', handleKonami);
+    }, []);
 
     // Fetch VFS Desktop folder contents
     useEffect(() => {
         if (!user || !api) return;
+
         const fetchDesktopFiles = async () => {
             try {
-                // First get root to find Desktop folder
                 const rootRes = await api.get('/vfs/root');
-                console.log('[Desktop Sync] Root:', rootRes.data);
                 if (!rootRes.data || !rootRes.data.id) return;
                 const childrenRes = await api.get(`/vfs/${rootRes.data.id}/children`);
-                console.log('[Desktop Sync] Root children:', childrenRes.data);
                 const desktopFolder = childrenRes.data.find(f => f.name === 'Desktop' && f.node_type === 'folder');
-                if (!desktopFolder) {
-                    console.warn('[Desktop Sync] No Desktop folder found among root children');
-                    return;
-                }
-                console.log('[Desktop Sync] Desktop folder:', desktopFolder);
+                if (!desktopFolder) return;
                 const filesRes = await api.get(`/vfs/${desktopFolder.id}/children`);
-                console.log('[Desktop Sync] Desktop files:', filesRes.data);
                 setDesktopFiles(filesRes.data.map(f => ({
                     ...f,
                     appId: `desktop-file-${f.id}`,
@@ -147,7 +160,20 @@ const Desktop = () => {
                 console.error('[Desktop Sync] Failed:', err);
             }
         };
+
         fetchDesktopFiles();
+
+        // Auto-sync every 10 seconds
+        const interval = setInterval(fetchDesktopFiles, 10000);
+
+        // Also sync on window focus
+        const onFocus = () => fetchDesktopFiles();
+        window.addEventListener('focus', onFocus);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('focus', onFocus);
+        };
     }, [user, api]);
 
     // Rebuild positions when desktopFiles change (append after static icons)
@@ -224,6 +250,35 @@ const Desktop = () => {
             {windows.map(win => (
                 <WindowFrame key={win.id} win={win} />
             ))}
+
+            {/* 🥚 Konami Code Easter Egg Popup */}
+            {showEasterEgg && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', zIndex: 99999
+                }} onClick={() => setShowEasterEgg(false)}>
+                    <div style={{
+                        background: 'linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)',
+                        border: '3px solid #e94560', borderRadius: '12px', padding: '40px',
+                        textAlign: 'center', maxWidth: '420px', color: '#fff',
+                        boxShadow: '0 0 40px rgba(233,69,96,0.4)', fontFamily: 'Tahoma, sans-serif'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>🏆🎮🎉</div>
+                        <h2 style={{ margin: '0 0 8px', color: '#e94560', fontSize: '22px' }}>You found the Easter Egg!</h2>
+                        <p style={{ margin: '0 0 16px', fontSize: '14px', color: '#ddd', lineHeight: '1.5' }}>
+                            Built with ❤️ for <strong style={{ color: '#e94560' }}>Ojass 2026</strong> — Hack de Science
+                        </p>
+                        <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#aaa' }}>
+                            Team F9 thanks the Ojass organizing committee for creating this incredible hackathon platform.
+                        </p>
+                        <div style={{ fontSize: '11px', color: '#666', marginTop: '16px' }}>
+                            ↑↑↓↓←→←→BA • Click anywhere to close
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Clippy />
         </div>
     );

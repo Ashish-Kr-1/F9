@@ -1,34 +1,39 @@
-#!/usr/bin/env bash
-set -e # exit immediately on error
+#!/bin/bash
+# setup.sh — Install all project dependencies
+# Run this from the project root: ./setup.sh
 
-echo "=== Windows XP Clone Setup ==="
+set -e
 
-# 1. Environment setup
-echo "Creating environment files..."
-cp -n .env.example .env 2>/dev/null || touch .env
+echo "======================================"
+echo "  Windows XP Web OS — Setup"
+echo "======================================"
+echo ""
 
-# Initialize subdirectories just in case they were not created or pulled
-mkdir -p frontend backend database
+# Backend dependencies
+echo "[1/3] Installing backend dependencies..."
+cd backend
+npm install
+cd ..
 
-# 2. Install project dependencies locally (if node/npm is available)
-if command -v npm &> /dev/null
-then
-    echo "Installing frontend dependencies..."
-    cd frontend && npm install || true
-    cd ..
-
-    echo "Installing backend dependencies..."
-    cd backend && npm install || true
-    cd ..
+# AI Backend dependencies (Python)
+echo "[2/3] Installing AI backend dependencies..."
+if command -v python3 &> /dev/null; then
+    cd backend/ai-backend
+    pip3 install -r requirements.txt 2>/dev/null || pip install -r requirements.txt
+    cd ../..
+    echo "  ✓ AI backend dependencies installed"
 else
-    echo "npm not found locally. We will rely on Docker for execution."
+    echo "  ⚠ Python3 not found — Clippy AI will not be available"
 fi
 
-# 3. Docker build (Bonus points path)
-if command -v docker-compose &> /dev/null
-then
-    echo "Building Docker images..."
-    docker-compose build || true
-fi
+# Frontend dependencies
+echo "[3/3] Installing frontend dependencies..."
+cd "frontend/windows xp"
+npm install
+cd ../..
 
-echo "Setup complete."
+echo ""
+echo "======================================"
+echo "  Setup complete!"
+echo "  Run ./web.sh to start the application"
+echo "======================================"

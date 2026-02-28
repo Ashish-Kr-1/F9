@@ -1,0 +1,79 @@
+.shutdown-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    transition: background-color 1s ease;
+}
+
+.shutdown-screen.saving {
+    background: linear-gradient(to bottom, #2152a9, #1a3f7a);
+}
+
+.shutdown-screen.shuttingdown {
+    background: linear-gradient(to bottom, #1a3f7a, #0a1f3a);
+}
+
+.shutdown-screen.safe {
+    background: #000;
+}
+
+.shutdown-content {
+    text-align: center;
+}
+
+.shutdown-text {
+    animation: fadeInOut 1.5s ease-in-out;
+}
+
+.shutdown-msg {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.shutdown-text.safe {
+    animation: fadeIn 1s ease-in;
+}
+
+.shutdown-msg-safe {
+    font-family: 'Tahoma', sans-serif;
+    font-size: 20px;
+    color: #ff9900;
+    text-align: center;
+    line-height: 1.6;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.8;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

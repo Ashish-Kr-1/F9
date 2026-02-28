@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { Pencil, Eraser, PaintBucket, Square, Circle, Minus, Trash2, Save } from 'lucide-react';
 import './Paint.css';
 
@@ -11,6 +12,7 @@ const COLORS = [
 const TOOLS = ['pencil', 'eraser', 'fill', 'rect', 'ellipse', 'line'];
 
 const Paint = () => {
+    const { api } = useAuth();
     const canvasRef = useRef(null);
     const [color, setColor] = useState('#000000');
     const [bgColor, setBgColor] = useState('#ffffff');
@@ -18,6 +20,11 @@ const Paint = () => {
     const [lineWidth, setLineWidth] = useState(2);
     const [drawing, setDrawing] = useState(false);
     const [snapshot, setSnapshot] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [saveName, setSaveName] = useState('painting.png');
+    const [saveFolder, setSaveFolder] = useState(null);
+    const [folders, setFolders] = useState([]);
     const startPos = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
@@ -29,10 +36,7 @@ const Paint = () => {
 
     const getPos = (e) => {
         const rect = canvasRef.current.getBoundingClientRect();
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-        };
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     };
 
     const floodFill = useCallback((ctx, x, y, fillColor) => {
@@ -96,10 +100,7 @@ const Paint = () => {
             ctx.beginPath();
 
             if (tool === 'rect') {
-                ctx.strokeRect(
-                    startPos.current.x, startPos.current.y,
-                    pos.x - startPos.current.x, pos.y - startPos.current.y
-                );
+                ctx.strokeRect(startPos.current.x, startPos.current.y, pos.x - startPos.current.x, pos.y - startPos.current.y);
             } else if (tool === 'ellipse') {
                 const rx = Math.abs(pos.x - startPos.current.x) / 2;
                 const ry = Math.abs(pos.y - startPos.current.y) / 2;
@@ -124,11 +125,58 @@ const Paint = () => {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     };
 
-    const saveCanvas = () => {
-        const link = document.createElement('a');
-        link.download = 'painting.png';
-        link.href = canvasRef.current.toDataURL();
-        link.click();
+    const loadFolders = async () => {
+        try {
+            const rootRes = await api.get('/vfs/root');
+            const root = rootRes.data;
+            const childrenRes = await api.get(`/vfs/${root.id}/children`);
+            const allFolders = [
+                { id: root.id, name: 'C: (Root)' },
+                ...childrenRes.data.filter(n => n.node_type === 'folder')
+            ];
+            setFolders(allFolders);
+            const myPics = allFolders.find(f => f.name === 'My Pictures');
+            setSaveFolder(myPics || allFolders[0]);
+        } catch (err) {
+            console.error("Failed to load folders:", err);
+        }
+    };
+
+    const handleSaveClick = async () => {
+        await loadFolders();
+        setShowSaveDialog(true);
+    };
+
+    const handleSaveToVFS = async () => {
+        if (!saveName.trim() || !saveFolder) return;
+        try {
+            setSaving(true);
+            const name = saveName.endsWith('.png') ? saveName : `${saveName}.png`;
+
+            // Get canvas as base64 PNG
+            const dataUrl = canvasRef.current.toDataURL('image/png');
+
+            // Create VFS node
+            const createRes = await api.post('/vfs/create', {
+                name,
+                type: 'file',
+                parentId: saveFolder.id,
+            });
+            const newNode = createRes.data;
+
+            // Save the PNG data to backend
+            await api.post(`/files/${newNode.id}/content`, {
+                text: dataUrl,
+                mimeType: 'image/png'
+            });
+
+            setShowSaveDialog(false);
+        } catch (error) {
+            console.error("Save failed:", error);
+            alert("Failed to save painting.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const toolIcon = {
@@ -176,7 +224,9 @@ const Paint = () => {
                     ))}
                     <div className="paint-tool-sep" />
                     <button className="paint-action-btn" onClick={clearCanvas} title="Clear"><Trash2 size={14} /></button>
-                    <button className="paint-action-btn" onClick={saveCanvas} title="Save"><Save size={14} /></button>
+                    <button className="paint-action-btn" onClick={handleSaveClick} title="Save to My Pictures" disabled={saving}>
+                        <Save size={14} />
+                    </button>
                 </div>
 
                 {/* Canvas */}
@@ -196,7 +246,6 @@ const Paint = () => {
 
             {/* Color Palette */}
             <div className="paint-palette-bar">
-                {/* Active colors */}
                 <div className="paint-active-colors">
                     <div className="paint-bg-swatch" style={{ background: bgColor }} title="Background" onClick={() => setBgColor(color)} />
                     <div className="paint-fg-swatch" style={{ background: color }} title="Foreground" />
@@ -215,6 +264,48 @@ const Paint = () => {
                 </div>
                 <div className="paint-hint">Left click = foreground, Right click = background</div>
             </div>
+
+            {/* Save Dialog */}
+            {showSaveDialog && (
+                <div className="paint-save-overlay">
+                    <div className="paint-save-dialog">
+                        <div className="paint-save-titlebar">
+                            <span>Save As</span>
+                            <button className="paint-save-close" onClick={() => setShowSaveDialog(false)}>×</button>
+                        </div>
+                        <div className="paint-save-body">
+                            <label>
+                                Save in:
+                                <select
+                                    value={saveFolder?.id || ''}
+                                    onChange={e => setSaveFolder(folders.find(f => f.id === e.target.value))}
+                                    className="paint-save-select"
+                                >
+                                    {folders.map(f => (
+                                        <option key={f.id} value={f.id}>{f.name}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                File name:
+                                <input
+                                    type="text"
+                                    value={saveName}
+                                    onChange={e => setSaveName(e.target.value)}
+                                    className="paint-save-input"
+                                    autoFocus
+                                />
+                            </label>
+                        </div>
+                        <div className="paint-save-actions">
+                            <button onClick={handleSaveToVFS} disabled={saving} className="paint-save-btn save">
+                                {saving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button onClick={() => setShowSaveDialog(false)} className="paint-save-btn cancel">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

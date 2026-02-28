@@ -46,7 +46,7 @@ const TaskbarButton = ({ win }) => {
     );
 };
 
-const Taskbar = () => {
+const Taskbar = ({ onShutdown }) => {
     const { windows } = useWindowManager();
     const { theme, switchTheme, themes } = useTheme();
     const [startOpen, setStartOpen] = useState(false);
@@ -70,7 +70,7 @@ const Taskbar = () => {
                 {/* Start Button + Menu Container */}
                 <div ref={startRef} style={{ display: 'flex', height: '100%', position: 'relative' }}>
                     {startOpen && (
-                        <StartMenu onClose={() => setStartOpen(false)} />
+                        <StartMenu onClose={() => setStartOpen(false)} onShutdown={onShutdown} />
                     )}
                     <button
                         className={`start-btn ${startOpen ? 'active' : ''}`}

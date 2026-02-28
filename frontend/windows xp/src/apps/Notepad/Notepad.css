@@ -90,3 +90,128 @@
     font-size: 10px;
     color: #555;
 }
+
+.np-filename-display {
+    margin-left: auto;
+    color: #888;
+    font-style: italic;
+    font-size: 10px;
+}
+
+/* Save As Dialog */
+.notepad-saveas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.notepad-saveas-dialog {
+    background: #ece9d8;
+    border: 2px solid #0054e3;
+    border-radius: 5px;
+    width: 340px;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.4);
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+}
+
+.saveas-titlebar {
+    background: linear-gradient(to right, #0054e3, #2b8aed);
+    color: white;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 3px 3px 0 0;
+}
+
+.saveas-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.saveas-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.saveas-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.saveas-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: #333;
+}
+
+.saveas-select,
+.saveas-input {
+    padding: 4px 6px;
+    border: 1px solid #7f9db9;
+    border-radius: 2px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    background: #fff;
+}
+
+.saveas-select:focus,
+.saveas-input:focus {
+    border-color: #0054e3;
+    outline: none;
+}
+
+.saveas-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 16px 12px;
+}
+
+.saveas-btn {
+    padding: 4px 20px;
+    font-family: 'Tahoma', sans-serif;
+    font-size: 12px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.saveas-btn.save {
+    background: linear-gradient(to bottom, #fff, #e4e4e4);
+    border: 1px solid #003c74;
+    color: #003c74;
+    font-weight: bold;
+}
+
+.saveas-btn.save:hover {
+    background: linear-gradient(to bottom, #e4e4e4, #ccc);
+}
+
+.saveas-btn.cancel {
+    background: linear-gradient(to bottom, #fff, #e4e4e4);
+    border: 1px solid #999;
+    color: #333;
+}
+
+.saveas-btn.cancel:hover {
+    background: linear-gradient(to bottom, #e4e4e4, #ccc);
+}

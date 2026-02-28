@@ -5,7 +5,7 @@ import { DESKTOP_ICONS } from '../../config/icons';
 import InternetExplorer from '../../apps/InternetExplorer/InternetExplorer';
 import './StartMenu.css';
 
-const StartMenu = ({ onClose }) => {
+const StartMenu = ({ onClose, onShutdown }) => {
     const { openWindow } = useWindowManager();
     const { user, logout } = useAuth();
 
@@ -124,7 +124,7 @@ const StartMenu = ({ onClose }) => {
                 <button className="start-footer-btn" onClick={() => { logout(); onClose(); }}>
                     <img src="https://win32.run/images/xp/icons/Logout.png" alt="" className="start-footer-icon" /> Log Off
                 </button>
-                <button className="start-footer-btn" onClick={() => { logout(); onClose(); }}>
+                <button className="start-footer-btn" onClick={() => { onClose(); onShutdown && onShutdown(); }}>
                     <img src="https://win32.run/images/xp/icons/Power.png" alt="" className="start-footer-icon" /> Turn Off Computer
                 </button>
             </div>
