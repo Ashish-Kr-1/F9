@@ -31,6 +31,9 @@ const FileExplorer = ({ mode }) => {
     const [renamingId, setRenamingId] = useState(null);
     const [renameValue, setRenameValue] = useState('');
 
+    // Clipboard for Copy/Move
+    const [clipboard, setClipboard] = useState(null); // { nodeId: string, action: 'copy' | 'cut' }
+
     // XP Confirm Dialog
     const [confirmDialog, setConfirmDialog] = useState(null);
 
@@ -197,6 +200,34 @@ const FileExplorer = ({ mode }) => {
         }
     };
 
+    // ─── Clipboard ───────────────────────────────────
+    const handleCopy = (node) => {
+        setClipboard({ nodeId: node.id, action: 'copy', name: node.name });
+    };
+
+    const handleCut = (node) => {
+        setClipboard({ nodeId: node.id, action: 'cut', name: node.name });
+    };
+
+    const handlePaste = async () => {
+        if (!clipboard || !currentNode) return;
+        try {
+            if (clipboard.action === 'copy') {
+                await api.post(`/vfs/${clipboard.nodeId}/copy`, {
+                    newName: `${clipboard.name} - Copy`
+                });
+            } else if (clipboard.action === 'cut') {
+                await api.patch(`/vfs/${clipboard.nodeId}/move`, {
+                    targetParentId: currentNode.id
+                });
+                setClipboard(null); // Clear clipboard after move
+            }
+            fetchChildren(currentNode.id);
+        } catch (err) {
+            console.error('Paste failed', err);
+        }
+    };
+
     // ─── Tree-view state ─────────────────────────────
     const [treeData, setTreeData] = useState(null);
     const [expandedNodes, setExpandedNodes] = useState(new Set());
@@ -354,6 +385,9 @@ const FileExplorer = ({ mode }) => {
                             📄 New File
                         </button>
                         <div className="exp-sep" />
+                        <button className="exp-btn" onClick={handlePaste} disabled={!clipboard} title={clipboard ? `Paste ${clipboard.name}` : "Nothing to paste"}>
+                            📋 Paste
+                        </button>
                     </>
                 )}
                 {isRecycleBin && (
@@ -460,6 +494,8 @@ const FileExplorer = ({ mode }) => {
                                                     </>
                                                 ) : (
                                                     <>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleCopy(f); }} title="Copy">📋 Copy</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleCut(f); }} title="Cut">✂️ Cut</button>
                                                         <button onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️ Rename</button>
                                                         <button onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️ Delete</button>
                                                     </>
@@ -500,6 +536,8 @@ const FileExplorer = ({ mode }) => {
                                         </>
                                     ) : (
                                         <>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleCopy(f); }} title="Copy">📋</button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleCut(f); }} title="Cut">✂️</button>
                                             <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️</button>
                                             <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️</button>
                                         </>

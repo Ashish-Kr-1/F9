@@ -143,6 +143,33 @@ router.post('/:nodeId/copy', verifyToken, async (req, res) => {
     }
 });
 
+// Move a node (update parent_id)
+router.patch('/:nodeId/move', verifyToken, async (req, res) => {
+    try {
+        const { targetParentId } = req.body;
+        if (!targetParentId) return res.status(400).json({ error: 'Missing targetParentId' });
+
+        // Update parent_id and also update path (simplified)
+        const parentRes = await db.query("SELECT path FROM vfs_nodes WHERE id=$1", [targetParentId]);
+        const parentPath = parentRes.rows.length > 0 ? parentRes.rows[0].path : 'C:';
+
+        const nodeRes = await db.query("SELECT name FROM vfs_nodes WHERE id=$1", [req.params.nodeId]);
+        if (nodeRes.rows.length === 0) return res.status(404).json({ error: 'Node not found' });
+        const newPath = `${parentPath}/${nodeRes.rows[0].name}`;
+
+        const result = await db.query(
+            'UPDATE vfs_nodes SET parent_id=$1, path=$2, updated_at=NOW() WHERE id=$3 AND user_id=$4 RETURNING *',
+            [targetParentId, newPath, req.params.nodeId, req.userId]
+        );
+
+        if (result.rows.length === 0) return res.status(404).json({ error: 'Node not found' });
+        res.json({ message: 'Moved successfully', node: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Move failed' });
+    }
+});
+
 // Delete a node (soft delete)
 router.delete('/:nodeId', verifyToken, async (req, res) => {
     try {
