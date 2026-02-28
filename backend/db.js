@@ -13,23 +13,38 @@ const poolConfig = process.env.DATABASE_URL
         database: process.env.DB_NAME || 'xpclone',
     };
 
-// Cloud Run best practices: limit pool size to prevent connection overload
+// Cloud Run best practices: limit pool size
 poolConfig.max = parseInt(process.env.DB_POOL_MAX || '5', 10);
-poolConfig.connectionTimeoutMillis = 10000;  // 10s connect timeout
-poolConfig.idleTimeoutMillis = 30000;        // 30s idle timeout
+poolConfig.connectionTimeoutMillis = 10000;
+poolConfig.idleTimeoutMillis = 30000;
 
 const pool = new Pool(poolConfig);
 
-pool.on('connect', () => {
-    console.log('✅ Connected to PostgreSQL (Cloud SQL)');
+pool.on('error', (err) => {
+    console.error('❌ Unexpected idle client error:', err.message);
 });
 
-pool.on('error', (err) => {
-    console.error('❌ Unexpected error on idle client', err);
-    process.exit(-1);
-});
+/**
+ * Verify database connectivity on startup
+ * @returns {Promise<{ok: boolean, latencyMs: number, version: string}>}
+ */
+const verify = async () => {
+    const start = Date.now();
+    try {
+        const res = await pool.query('SELECT version() AS v');
+        const latencyMs = Date.now() - start;
+        const version = res.rows[0].v.split(',')[0]; // e.g. "PostgreSQL 15.x"
+        console.log(`✅ Database connected (${latencyMs}ms) — ${version}`);
+        return { ok: true, latencyMs, version };
+    } catch (err) {
+        const latencyMs = Date.now() - start;
+        console.error(`❌ Database connection FAILED (${latencyMs}ms):`, err.message);
+        return { ok: false, latencyMs, error: err.message };
+    }
+};
 
 module.exports = {
     query: (text, params) => pool.query(text, params),
     pool,
+    verify,
 };
