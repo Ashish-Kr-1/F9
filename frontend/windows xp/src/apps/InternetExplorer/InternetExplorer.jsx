@@ -158,8 +158,8 @@ const InternetExplorer = () => {
             {/* Content Area */}
             <div className="ie-content">
                 {loading && (
-                    <div className="ie-loading-bar">
-                        <div className="ie-loading-progress" />
+                    <div style={{ padding: '2px', background: '#ece9d8', borderBottom: '1px solid #aca899' }}>
+                        <progress max="100" style={{ width: '100%', height: '14px' }}></progress>
                     </div>
                 )}
 

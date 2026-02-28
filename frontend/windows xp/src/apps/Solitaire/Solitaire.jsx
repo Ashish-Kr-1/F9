@@ -445,9 +445,12 @@ const Solitaire = () => {
                         >
                             {col.length === 0 && <div className="card empty tableau-empty"></div>}
                             {col.map((card, cardIndex) => {
+                                // Calculate absolute top position mathematically rather than relying on margin hacks
                                 const isTop = cardIndex === 0;
                                 const prevFaceUp = cardIndex > 0 ? col[cardIndex - 1].isFaceUp : false;
-                                const marginOffset = isTop ? '0px' : (prevFaceUp ? '-82px' : '-102px');
+
+                                // Face-down cards get a 10px peek, face-up ones get a 25px peek.
+                                const topOffset = col.slice(0, cardIndex).reduce((acc, c) => acc + (c.isFaceUp ? 25 : 10), 0);
 
                                 return (
                                     <Card
@@ -458,7 +461,7 @@ const Solitaire = () => {
                                         cardIndex={cardIndex}
                                         onClick={handleCardClick}
                                         onDoubleClick={handleDoubleClick}
-                                        style={{ marginTop: marginOffset, zIndex: cardIndex }}
+                                        style={{ position: 'absolute', top: `${topOffset}px`, zIndex: cardIndex }}
                                     />
                                 );
                             })}

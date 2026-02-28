@@ -59,6 +59,13 @@
     gap: 20px;
 }
 
+.foundation-pile,
+.waste-pile {
+    width: 80px;
+    height: 112px;
+    position: relative;
+}
+
 .solitaire-tableau {
     display: flex;
     gap: 20px;
@@ -68,8 +75,9 @@
 .tableau-col {
     position: relative;
     width: 80px;
+    height: 100%;
+    /* Important for absolute children */
     min-height: 120px;
-    /* Card height */
 }
 
 /* Card Styling */
@@ -83,7 +91,8 @@
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     box-sizing: border-box;
     cursor: pointer;
-    position: relative;
+    position: absolute;
+    /* Ensures all cards layer identically */
     display: flex;
     flex-direction: column;
 }
@@ -107,6 +116,8 @@
     border: 2px solid rgba(255, 255, 255, 0.2);
     box-shadow: none;
     display: flex;
+    position: relative;
+    /* Revert position for empty slots so they hold layout */
     align-items: center;
     justify-content: center;
     font-size: 40px;

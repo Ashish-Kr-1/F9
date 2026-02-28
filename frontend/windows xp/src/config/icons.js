@@ -114,7 +114,7 @@ export const DESKTOP_ICONS = [
         appId: 'cmd',
         label: 'Command Prompt',
         title: 'Command Prompt',
-        src: 'https://win32.run/images/xp/icons/Console.png',
+        src: 'https://win32.run/images/xp/icons/CommandPrompt.png',
         component: CommandPrompt,
         defaultSize: { width: 640, height: 380 },
         minSize: { width: 300, height: 200 },

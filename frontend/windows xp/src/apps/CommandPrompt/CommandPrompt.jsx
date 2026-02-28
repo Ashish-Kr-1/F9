@@ -101,6 +101,9 @@ export default function CommandPrompt() {
   MD      Creates a directory.
   RMDIR   Removes a directory.
   RD      Removes a directory.
+  COPY    Copies one or more files to another location.
+  MOVE    Moves or renames files.
+  REBOOT  Restarts the system.
   EXIT    Quits the CMD.EXE program (or close window).`);
                 break;
 
@@ -173,6 +176,14 @@ export default function CommandPrompt() {
                 await api.post('/vfs/create', { name: arg, type: 'folder', parentId: currentNode.id });
                 break;
 
+            case 'touch':
+                if (!arg) {
+                    printLine('The syntax of the command is incorrect.');
+                    return;
+                }
+                await api.post('/vfs/create', { name: arg, type: 'file', parentId: currentNode.id });
+                break;
+
             case 'echo':
                 // Check if it's echoing into a file
                 if (args.includes('>')) {
@@ -207,6 +218,49 @@ export default function CommandPrompt() {
                 } else {
                     printLine(`Could Not Find C:\\WINDOWS\\SYSTEM32\\${arg}`);
                 }
+                break;
+
+            case 'ren':
+            case 'move':
+            case 'rename':
+                if (args.length < 2) {
+                    printLine('The syntax of the command is incorrect.');
+                    return;
+                }
+                const oldName = args[0];
+                const newName = args[1];
+                const renRes = await api.get(`/vfs/${currentNode.id}/children`);
+                const fileToRen = renRes.data.find(c => c.name.toLowerCase() === oldName.toLowerCase());
+                if (fileToRen) {
+                    await api.patch(`/vfs/${fileToRen.id}/rename`, { newName });
+                } else {
+                    printLine(`The system cannot find the file specified.`);
+                }
+                break;
+
+            case 'cp':
+            case 'copy':
+                if (args.length < 2) {
+                    printLine('The syntax of the command is incorrect.');
+                    return;
+                }
+                const srcName = args[0];
+                const targetName = args[1];
+                const cpRes = await api.get(`/vfs/${currentNode.id}/children`);
+                const fileToCp = cpRes.data.find(c => c.name.toLowerCase() === srcName.toLowerCase());
+                if (fileToCp) {
+                    await api.post(`/vfs/${fileToCp.id}/copy`, { newName: targetName });
+                    printLine(`        1 file(s) copied.`);
+                } else {
+                    printLine(`The system cannot find the file specified.`);
+                }
+                break;
+
+            case 'reboot':
+            case 'restart':
+            case 'shutdown':
+                printLine('Rebooting system...');
+                setTimeout(() => window.location.reload(), 1000);
                 break;
 
             case 'exit':

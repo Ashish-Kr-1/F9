@@ -120,6 +120,29 @@ router.patch('/:nodeId/rename', verifyToken, async (req, res) => {
     }
 });
 
+// Copy a node 
+router.post('/:nodeId/copy', verifyToken, async (req, res) => {
+    try {
+        const { newName } = req.body;
+        // Fetch current node details
+        const nodeRes = await db.query('SELECT * FROM vfs_nodes WHERE id=$1 AND user_id=$2', [req.params.nodeId, req.userId]);
+        if (nodeRes.rows.length === 0) return res.status(404).json({ error: 'Node not found' });
+
+        const node = nodeRes.rows[0];
+        const copyName = newName || `${node.name} - Copy`;
+
+        const copyRes = await db.query(
+            `INSERT INTO vfs_nodes (user_id, name, path, node_type, parent_id, size_bytes)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [req.userId, copyName, node.path.replace(node.name, copyName), node.node_type, node.parent_id, node.size_bytes]
+        );
+        res.json(copyRes.rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Copy failed' });
+    }
+});
+
 // Delete a node (soft delete)
 router.delete('/:nodeId', verifyToken, async (req, res) => {
     try {
