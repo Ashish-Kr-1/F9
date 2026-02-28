@@ -48,6 +48,7 @@ const Snake = () => {
         setGameOver(false);
         setIsPaused(false);
         setFood(createFood(initialSnake));
+        gameOverRef.current = false;
     }, []);
 
     useEffect(() => {
@@ -134,7 +135,11 @@ const Snake = () => {
         return () => clearInterval(interval);
     }, [gameOver, isPaused, food]);
 
+    const gameOverRef = useRef(false);
+
     const handleGameOver = async (finalScore) => {
+        if (gameOverRef.current) return; // prevent double-fire
+        gameOverRef.current = true;
         setGameOver(true);
         if (user && finalScore > 0) {
             try {

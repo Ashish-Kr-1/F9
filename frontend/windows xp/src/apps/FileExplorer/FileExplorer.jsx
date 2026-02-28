@@ -214,7 +214,7 @@ const FileExplorer = ({ mode }) => {
             const folders = res.data.filter(n => n.node_type === 'folder');
             setTreeData({
                 ...root,
-                children: folders,
+                children: folders.map(f => ({ ...f, children: null })), // null = not loaded yet
             });
             setExpandedNodes(new Set([root.id]));
         } catch (err) {
@@ -222,14 +222,35 @@ const FileExplorer = ({ mode }) => {
         }
     };
 
+    // Recursively update a node inside the tree
+    const updateNodeChildren = (node, targetId, newChildren) => {
+        if (node.id === targetId) {
+            return { ...node, children: newChildren };
+        }
+        if (!node.children) return node;
+        return {
+            ...node,
+            children: node.children.map(child => updateNodeChildren(child, targetId, newChildren)),
+        };
+    };
+
     const toggleExpand = async (nodeId) => {
         const next = new Set(expandedNodes);
         if (next.has(nodeId)) {
             next.delete(nodeId);
+            setExpandedNodes(next);
         } else {
             next.add(nodeId);
+            setExpandedNodes(next);
+            // Fetch children from API if not loaded yet
+            try {
+                const res = await api.get(`/vfs/${nodeId}/children`);
+                const folders = res.data.filter(n => n.node_type === 'folder');
+                setTreeData(prev => updateNodeChildren(prev, nodeId, folders.map(f => ({ ...f, children: null }))));
+            } catch (err) {
+                console.error('Failed to load tree children', err);
+            }
         }
-        setExpandedNodes(next);
     };
 
     const handleTreeClick = (node) => {
@@ -253,16 +274,52 @@ const FileExplorer = ({ mode }) => {
     const TreeNode = ({ node, depth = 0 }) => {
         const isExpanded = expandedNodes.has(node.id);
         const isActive = currentNode && currentNode.id === node.id;
-        const hasChildren = node.children && node.children.length > 0;
+        const hasChildren = node.children === null || (node.children && node.children.length > 0);
+
+        const handleToggle = async (e) => {
+            e.stopPropagation();
+            const next = new Set(expandedNodes);
+            if (next.has(node.id)) {
+                next.delete(node.id);
+                setExpandedNodes(next);
+            } else {
+                next.add(node.id);
+                setExpandedNodes(next);
+                // Fetch children for tree if not loaded
+                try {
+                    const res = await api.get(`/vfs/${node.id}/children`);
+                    const folders = res.data.filter(n => n.node_type === 'folder');
+                    setTreeData(prev => updateNodeChildren(prev, node.id, folders.map(f => ({ ...f, children: null }))));
+                } catch (err) {
+                    console.error('Failed to load tree children', err);
+                }
+            }
+        };
+
+        const handleNavigate = (e) => {
+            e.stopPropagation();
+            // Always navigate: update right panel
+            setCurrentNode(node);
+            if (rootNode && node.id === rootNode.id) {
+                setPathStack([{ id: node.id, name: node.name }]);
+            } else {
+                setPathStack([{ id: rootNode.id, name: rootNode.name }, { id: node.id, name: node.name }]);
+            }
+            fetchChildren(node.id);
+            // Auto-expand if not already expanded
+            if (!expandedNodes.has(node.id)) {
+                handleToggle(e);
+            }
+        };
 
         return (
             <div>
                 <div
                     className={`tree-item ${isActive ? 'tree-active' : ''}`}
                     style={{ paddingLeft: 8 + depth * 16 }}
-                    onClick={() => { handleTreeClick(node); toggleExpand(node.id); }}
+                    onClick={handleNavigate}
                 >
-                    <span className="tree-toggle">{hasChildren ? (isExpanded ? '▾' : '▸') : ' '}</span>
+                    <span className="tree-toggle" onClick={handleToggle}>{hasChildren ? (isExpanded ? '▾' : '▸') : ' '}</span>
                     <img src="https://win32.run/images/xp/icons/FolderClosed.png" alt="" className="tree-icon" />
                     <span className="tree-label">{node.name}</span>
                 </div>
@@ -284,35 +341,35 @@ const FileExplorer = ({ mode }) => {
                 {!isRecycleBin && (
                     <>
                         <button className="exp-btn" title="Back" onClick={handleUp} disabled={pathStack.length <= 1}>
-                            <img src="https://win32.run/images/xp/icons/Back.png" alt="" className="exp-toolbar-icon" /> Back
+                            ◀ Back
                         </button>
                         <button className="exp-btn" title="Up" onClick={handleUp} disabled={pathStack.length <= 1}>
-                            <img src="https://win32.run/images/xp/icons/Up.png" alt="" className="exp-toolbar-icon" /> Up
+                            ⬆ Up
                         </button>
                         <div className="exp-sep" />
                         <button className="exp-btn" title="New Folder" onClick={() => { setIsCreating(true); setNewItemType('folder'); }}>
-                            <img src="https://win32.run/images/xp/icons/FolderNew.png" alt="" className="exp-toolbar-icon" /> New Folder
+                            📁 New Folder
                         </button>
                         <button className="exp-btn" title="New File" onClick={() => { setIsCreating(true); setNewItemType('file'); }}>
-                            <img src="https://win32.run/images/xp/icons/Notepad.png" alt="" className="exp-toolbar-icon" /> New File
+                            📄 New File
                         </button>
                         <div className="exp-sep" />
                     </>
                 )}
                 {isRecycleBin && (
                     <span style={{ padding: '2px 8px', fontWeight: 'bold', color: '#333', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="" className="exp-toolbar-icon" /> Recycle Bin
+                        🗑️ Recycle Bin
                     </span>
                 )}
                 <div className="exp-view-group">
                     <button className={`exp-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')} title="List view">
-                        <img src="https://win32.run/images/xp/icons/List.png" alt="" className="exp-toolbar-icon" />
+                        ☰
                     </button>
                     <button className={`exp-btn ${view === 'details' ? 'active' : ''}`} onClick={() => setView('details')} title="Details view">
-                        <img src="https://win32.run/images/xp/icons/Details.png" alt="" className="exp-toolbar-icon" />
+                        ≡
                     </button>
                     <button className={`exp-btn ${view === 'icons' ? 'active' : ''}`} onClick={() => setView('icons')} title="Icons view">
-                        <img src="https://win32.run/images/xp/icons/LargeIcons.png" alt="" className="exp-toolbar-icon" />
+                        ⊞
                     </button>
                 </div>
             </div>
@@ -398,21 +455,13 @@ const FileExplorer = ({ mode }) => {
                                             <td>
                                                 {isRecycleBin ? (
                                                     <>
-                                                        <button onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">
-                                                            <img src="https://win32.run/images/xp/icons/Undo.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Restore
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete Permanently">
-                                                            <img src="https://win32.run/images/xp/icons/Delete.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Delete
-                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">♻️ Restore</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete Permanently">❌ Delete</button>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">
-                                                            <img src="https://win32.run/images/xp/icons/Rename.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Rename
-                                                        </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">
-                                                            <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="" style={{ width: 12, height: 12, imageRendering: 'pixelated', verticalAlign: 'middle' }} /> Delete
-                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️ Rename</button>
+                                                        <button onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️ Delete</button>
                                                     </>
                                                 )}
                                             </td>
@@ -446,21 +495,13 @@ const FileExplorer = ({ mode }) => {
                                     )}
                                     {isRecycleBin ? (
                                         <>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">
-                                                <img src="https://win32.run/images/xp/icons/Undo.png" alt="Restore" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
-                                            </button>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete">
-                                                <img src="https://win32.run/images/xp/icons/Delete.png" alt="Delete" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
-                                            </button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); handleRestore(f.id); }} title="Restore">♻️</button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestPermanentDelete(f); }} title="Delete">❌</button>
                                         </>
                                     ) : (
                                         <>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">
-                                                <img src="https://win32.run/images/xp/icons/Rename.png" alt="Rename" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
-                                            </button>
-                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">
-                                                <img src="https://win32.run/images/xp/icons/RecycleBinempty.png" alt="Delete" style={{ width: 14, height: 14, imageRendering: 'pixelated' }} />
-                                            </button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); startRename(f); }} title="Rename">✏️</button>
+                                            <button className="del-btn-small" onClick={(e) => { e.stopPropagation(); requestDelete(f); }} title="Delete">🗑️</button>
                                         </>
                                     )}
                                 </div>

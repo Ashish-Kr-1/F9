@@ -21,6 +21,9 @@ app.use('/api/files', require('./routes/files'));
 // Clippy AI Gateway — proxies to FastAPI internally
 app.use('/api/clippy', require('./routes/clippy'));
 
+// Game Scores
+app.use('/api/scores', require('./routes/scores'));
+
 // Add a simple health check route
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'API is running' });
