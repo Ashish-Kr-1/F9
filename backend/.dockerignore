@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+ai-backend
+__pycache__
+*.pyc
+.git
+.gitignore
+README.md

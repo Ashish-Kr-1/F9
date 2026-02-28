@@ -2,19 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# bcrypt requires native build tools on Alpine
+RUN apk add --no-cache python3 make g++
+
 ENV NODE_ENV=production
 
-# Copy package info
+# Copy package info and install
 COPY package*.json ./
-
-# Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --omit=dev && apk del python3 make g++
 
 # Copy application code
 COPY . .
 
-# Cloud Run uses PORT env var (default 8080)
 EXPOSE 8080
 
-# Start command
 CMD ["node", "server.js"]
